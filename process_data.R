@@ -6,10 +6,7 @@ library(lubridate)
 # library(nipnTK)
 
 # Read Data ---------------------------------------------------------------
-
-
 data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_-_all_versions_-_English_-_2022-01-23-07-13-13.xlsx"
-
 
 main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022", guess_max = 5000) %>% type_convert()
 hh_roster <- read_excel(data_path, sheet = "hh_roster", guess_max = 5000) %>% type_convert()
@@ -20,7 +17,6 @@ preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000
 # Change Data type
 main$province <- as.character(main$province)
 main$consent <- as.character(main$consent)
-
 
 # Recode Data -------------------------------------------------------------
 
