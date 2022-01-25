@@ -142,9 +142,7 @@ child_anthropometry_data <- child_joined %>%
     MUAC_3
     
   )
-
-
-
+  
 # Create a list of dataframes to be exported ------------------------------
 
 export_list <- list(
@@ -155,10 +153,6 @@ export_list <- list(
   child_anthropometry_data = child_anthropometry_data
 )
 
-
-
 # Export Data -------------------------------------------------------------
 
 openxlsx::write.xlsx(export_list, paste0("output/ACO_SMART_Survey_2022_", lubridate::today() ,".xlsx"))
-
-
