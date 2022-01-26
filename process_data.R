@@ -4,6 +4,7 @@ library(tidyr)
 library(readr)
 library(lubridate)
 # library(nipnTK)
+`%notin%` <- Negate(`%in%`)
 
 # Read Data ---------------------------------------------------------------
 data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_-_all_versions_-_English_-_2022-01-23-07-13-13.xlsx"
@@ -13,6 +14,44 @@ main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022", guess_max = 5000)
 hh_roster <- read_excel(data_path, sheet = "hh_roster", guess_max = 5000) %>% type_convert()
 child <- read_excel(data_path, sheet = "child", guess_max = 5000) %>% type_convert()
 preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000) %>% type_convert()
+
+# Translation Log ---------------------------------------------------------
+sheet_list <- excel_sheets(data_path)
+
+log <- data.frame(question=NA, old_value=NA, new_value=NA, uuid=NA, Remarks=NA)
+for(sheet_i in sheet_list){
+  data <- read_excel(data_path, sheet = sheet_i, guess_max = 5000)
+  
+  question <- c()
+  old_value <- c() 
+  uuid <- c()
+  #checking each row of each column
+  for(col_name in colnames(data)){
+    for(i in 1:nrow(data)){
+      cell_val <- data[[col_name]][i]
+      
+      if(!(is.na(cell_val) | is.numeric(cell_val))){
+        if(Encoding(cell_val) %in% "UTF-8"){
+          
+          question <- c(question, col_name)
+          old_value <- c(old_value, cell_val)
+          
+          #because the uuid column names is different in sheets
+          if(sheet_i %in% "ACO_SMART_Survey_2022"){
+            uuid <- c(uuid, data$`_uuid`[i])
+          } else {
+            uuid <- c(uuid, data$`_submission__uuid`[i])
+          }
+        }
+      }
+    }
+  }
+  sheet_log <- data.frame(question, old_value, new_value=NA, uuid, Remarks=NA)
+  log <- rbind(log, sheet_log)
+}
+log <- log[-1,]
+
+writexl::write_xlsx(log, "output/translation_log.xlsx")
 
 sample_sheet <- read_excel(sample_sheet_path)
 sample_sheet <- sample_sheet %>% filter(CLUSTER != "RC") %>% mutate(CLUSTER = as.numeric(CLUSTER))
