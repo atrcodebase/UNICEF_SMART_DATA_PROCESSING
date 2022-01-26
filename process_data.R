@@ -25,7 +25,7 @@ main$consent <- as.character(main$consent)
 
 main <- main %>% 
   mutate(
-    Date = as.Date(start),
+    Date = base::as.Date(start),
     Duration = difftime(end, start, units = c("mins")),
     province = case_when(
       province	== 1	~ "Badakhshan",
