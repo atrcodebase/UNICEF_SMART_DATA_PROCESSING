@@ -15,7 +15,31 @@ hh_roster <- read_excel(data_path, sheet = "hh_roster", guess_max = 5000) %>% ty
 child <- read_excel(data_path, sheet = "child", guess_max = 5000) %>% type_convert()
 preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000) %>% type_convert()
 
-# Translation Log ---------------------------------------------------------
+# Correction Log ----------------------------------------------------------
+cleaned_link <- "https://docs.google.com/spreadsheets/d/1VeGTxPUpX44el3Jr6tY15OalMiigUhCqypJKGudYpbw/edit#gid=662183319"
+translation_log <- googlesheets4::read_sheet(cleaned_link, sheet = "Translation_log")
+correction_log <- googlesheets4::read_sheet(cleaned_link, sheet = "Correction_log")
+UNICEF_correction_log <- rbind(translation_log[1:4], correction_log[1:4])
+
+for (rowi in 1:nrow(UNICEF_correction_log)){
+  uuid_i <- UNICEF_correction_log$UUID[rowi]
+  var_i <- UNICEF_correction_log$Question[rowi]
+  old_i <- UNICEF_correction_log$`Old Value`[rowi]
+  new_i <- UNICEF_correction_log$`New Value`[rowi]
+  print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
+  # Find the variable according to the row of the cleaning log
+  if(var_i %in% colnames(main)){
+    main[main$`_uuid` == uuid_i, var_i] <- new_i
+  } else if(var_i %in% colnames(hh_roster)){
+    hh_roster[hh_roster$`_submission__uuid` == uuid_i, var_i] <- new_i
+  } else if(var_i %in% colnames(child)){
+    child[child$`_submission__uuid` == uuid_i, var_i] <- new_i
+  } else if(var_i %in% colnames(preg_lact_wom)){
+    preg_lact_wom[preg_lact_wom$`_submission__uuid` == uuid_i, var_i] <- new_i
+  }
+}
+
+# Generating Translation Log -------------------------------------------------------
 sheet_list <- excel_sheets(data_path)
 
 log <- data.frame(question=NA, old_value=NA, new_value=NA, uuid=NA, sheet_name=NA, Remarks=NA)
@@ -52,8 +76,6 @@ for(sheet_i in sheet_list){
   log <- rbind(log, sheet_log)
 }
 log <- log[-1,]
-
-writexl::write_xlsx(log, "output/translation_log.xlsx")
 
 sample_sheet <- read_excel(sample_sheet_path)
 sample_sheet <- sample_sheet %>% filter(CLUSTER != "RC") %>% mutate(CLUSTER = as.numeric(CLUSTER))
@@ -228,4 +250,6 @@ n_cluster_by_date_province <- main %>%
 
 openxlsx::write.xlsx(export_list, paste0("output/ACO_SMART_Survey_2022_", lubridate::today() ,".xlsx"))
 openxlsx::write.xlsx(n_cluster_by_date_province, paste0("output/count_of_clusters_by_date_province_", lubridate::today() ,".xlsx"))
+#export translation log
+writexl::write_xlsx(log, "output/translation_log.xlsx")
 
