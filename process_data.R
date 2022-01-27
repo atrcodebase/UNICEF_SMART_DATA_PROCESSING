@@ -18,13 +18,14 @@ preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000
 # Translation Log ---------------------------------------------------------
 sheet_list <- excel_sheets(data_path)
 
-log <- data.frame(question=NA, old_value=NA, new_value=NA, uuid=NA, Remarks=NA)
+log <- data.frame(question=NA, old_value=NA, new_value=NA, uuid=NA, sheet_name=NA, Remarks=NA)
 for(sheet_i in sheet_list){
   data <- read_excel(data_path, sheet = sheet_i, guess_max = 5000)
   
   question <- c()
   old_value <- c() 
   uuid <- c()
+  sheet_name <- c()
   #checking each row of each column
   for(col_name in colnames(data)){
     for(i in 1:nrow(data)){
@@ -35,6 +36,7 @@ for(sheet_i in sheet_list){
           
           question <- c(question, col_name)
           old_value <- c(old_value, cell_val)
+          sheet_name <- c(sheet_name, sheet_i)
           
           #because the uuid column names is different in sheets
           if(sheet_i %in% "ACO_SMART_Survey_2022"){
@@ -46,7 +48,7 @@ for(sheet_i in sheet_list){
       }
     }
   }
-  sheet_log <- data.frame(question, old_value, new_value=NA, uuid, Remarks=NA)
+  sheet_log <- data.frame(question, old_value, new_value=NA, uuid, sheet_name, Remarks=NA)
   log <- rbind(log, sheet_log)
 }
 log <- log[-1,]
