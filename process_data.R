@@ -2,6 +2,7 @@ if(!require("dplyr")) install.packages("dplyr")
 if(!require("readxl")) install.packages("readxl")
 if(!require("tidyr")) install.packages("tidyr")
 if(!require("readr")) install.packages("readr")
+if(!require("googlesheets4")) install.packages("googlesheets4")
 if(!require("lubridate")) install.packages("lubridate")
 # if(!require("nipnTK")) install.packages("nipnTK")
 `%notin%` <- Negate(`%in%`)
@@ -18,26 +19,33 @@ preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000
 # Correction Log ----------------------------------------------------------
 gs4_deauth()
 translation_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Am11iZsn4xQJYFMlb9b3y_DtON13CcSNTVBj06ac1jDsvntgfCArhwtT2Ra73po3UqEtbwHmePWZ/pub?gid=662183319&single=true&output=csv")
+translation_log <- translation_log %>% filter(`Translated?` %in% "Yes")
 correction_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Am11iZsn4xQJYFMlb9b3y_DtON13CcSNTVBj06ac1jDsvntgfCArhwtT2Ra73po3UqEtbwHmePWZ/pub?gid=1795705035&single=true&output=csv")
-UNICEF_correction_log <- rbind(translation_log[1:4], correction_log[1:4])
 
-for (rowi in 1:nrow(UNICEF_correction_log)){
-  uuid_i <- UNICEF_correction_log$UUID[rowi]
-  var_i <- UNICEF_correction_log$Question[rowi]
-  old_i <- UNICEF_correction_log$`Old Value`[rowi]
-  new_i <- UNICEF_correction_log$`New Value`[rowi]
-  print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
-  # Find the variable according to the row of the cleaning log
-  if(var_i %in% colnames(main)){
-    main[main$`_uuid` == uuid_i, var_i] <- new_i
-  } else if(var_i %in% colnames(hh_roster)){
-    hh_roster[hh_roster$`_submission__uuid` == uuid_i, var_i] <- new_i
-  } else if(var_i %in% colnames(child)){
-    child[child$`_submission__uuid` == uuid_i, var_i] <- new_i
-  } else if(var_i %in% colnames(preg_lact_wom)){
-    preg_lact_wom[preg_lact_wom$`_submission__uuid` == uuid_i, var_i] <- new_i
+# Function to use for both log sheets
+apply_log <- function(UNICEF_correction_log){
+  for (rowi in 1:nrow(UNICEF_correction_log)){
+    uuid_i <- UNICEF_correction_log$UUID[rowi]
+    var_i <- UNICEF_correction_log$Question[rowi]
+    old_i <- UNICEF_correction_log$`Old Value`[rowi]
+    new_i <- UNICEF_correction_log$`New Value`[rowi]
+    print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
+    # Find the variable according to the row of the cleaning log
+    if(var_i %in% colnames(main)){
+      main[main$`_uuid` == uuid_i, var_i] <<- new_i
+    } else if(var_i %in% colnames(hh_roster)){
+      hh_roster[hh_roster$`_submission__uuid` == uuid_i, var_i] <<- new_i
+    } else if(var_i %in% colnames(child)){
+      child[child$`_submission__uuid` == uuid_i, var_i] <<- new_i
+    } else if(var_i %in% colnames(preg_lact_wom)){
+      preg_lact_wom[preg_lact_wom$`_submission__uuid` == uuid_i, var_i] <<- new_i
+    }
   }
 }
+
+#Calling the function
+apply_log(translation_log)
+apply_log(correction_log)
 
 # Generating Translation Log -------------------------------------------------------
 sheet_list <- excel_sheets(data_path)
