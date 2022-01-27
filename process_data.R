@@ -1,9 +1,9 @@
-library(dplyr)
-library(readxl)
-library(tidyr)
-library(readr)
-library(lubridate)
-# library(nipnTK)
+if(!require("dplyr")) install.packages("dplyr")
+if(!require("readxl")) install.packages("readxl")
+if(!require("tidyr")) install.packages("tidyr")
+if(!require("readr")) install.packages("readr")
+if(!require("lubridate")) install.packages("lubridate")
+# if(!require("nipnTK")) install.packages("nipnTK")
 `%notin%` <- Negate(`%in%`)
 
 # Read Data ---------------------------------------------------------------
@@ -16,9 +16,9 @@ child <- read_excel(data_path, sheet = "child", guess_max = 5000) %>% type_conve
 preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000) %>% type_convert()
 
 # Correction Log ----------------------------------------------------------
-cleaned_link <- "https://docs.google.com/spreadsheets/d/1VeGTxPUpX44el3Jr6tY15OalMiigUhCqypJKGudYpbw/edit#gid=662183319"
-translation_log <- googlesheets4::read_sheet(cleaned_link, sheet = "Translation_log")
-correction_log <- googlesheets4::read_sheet(cleaned_link, sheet = "Correction_log")
+gs4_deauth()
+translation_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Am11iZsn4xQJYFMlb9b3y_DtON13CcSNTVBj06ac1jDsvntgfCArhwtT2Ra73po3UqEtbwHmePWZ/pub?gid=662183319&single=true&output=csv")
+correction_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Am11iZsn4xQJYFMlb9b3y_DtON13CcSNTVBj06ac1jDsvntgfCArhwtT2Ra73po3UqEtbwHmePWZ/pub?gid=1795705035&single=true&output=csv")
 UNICEF_correction_log <- rbind(translation_log[1:4], correction_log[1:4])
 
 for (rowi in 1:nrow(UNICEF_correction_log)){
