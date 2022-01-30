@@ -19,16 +19,16 @@ preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000
 # Correction Log ----------------------------------------------------------
 gs4_deauth()
 translation_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Am11iZsn4xQJYFMlb9b3y_DtON13CcSNTVBj06ac1jDsvntgfCArhwtT2Ra73po3UqEtbwHmePWZ/pub?gid=662183319&single=true&output=csv")
-translation_log <- translation_log %>% filter(`Translated?` %in% "Yes")
+translation_log_yes <- translation_log %>% filter(`Translated?` %in% "Yes")
+translation_log_no <- translation_log %>% filter(`Translated?` %in% "No")
 correction_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Am11iZsn4xQJYFMlb9b3y_DtON13CcSNTVBj06ac1jDsvntgfCArhwtT2Ra73po3UqEtbwHmePWZ/pub?gid=1795705035&single=true&output=csv")
 
-# Function to use for both log sheets
 apply_log <- function(UNICEF_correction_log){
   for (rowi in 1:nrow(UNICEF_correction_log)){
-    uuid_i <- UNICEF_correction_log$UUID[rowi]
-    var_i <- UNICEF_correction_log$Question[rowi]
-    old_i <- UNICEF_correction_log$`Old Value`[rowi]
-    new_i <- UNICEF_correction_log$`New Value`[rowi]
+    uuid_i <- UNICEF_correction_log$uuid[rowi]
+    var_i <- UNICEF_correction_log$question[rowi]
+    old_i <- UNICEF_correction_log$old_value[rowi]
+    new_i <- UNICEF_correction_log$new_value[rowi]
     print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
     # Find the variable according to the row of the cleaning log
     if(var_i %in% colnames(main)){
@@ -43,17 +43,11 @@ apply_log <- function(UNICEF_correction_log){
   }
 }
 
-#Calling the function
-apply_log(translation_log)
+apply_log(translation_log_yes)
 apply_log(correction_log)
 
 # Generating Translation Log -------------------------------------------------------
-sheet_list <- excel_sheets(data_path)
-
-log <- data.frame(question=NA, old_value=NA, new_value=NA, uuid=NA, sheet_name=NA, Remarks=NA)
-for(sheet_i in sheet_list){
-  data <- read_excel(data_path, sheet = sheet_i, guess_max = 5000)
-  
+generate_translation_log <- function(data, sheet_i){
   question <- c()
   old_value <- c() 
   uuid <- c()
@@ -62,15 +56,13 @@ for(sheet_i in sheet_list){
   for(col_name in colnames(data)){
     for(i in 1:nrow(data)){
       cell_val <- data[[col_name]][i]
-      
-      if(!(is.na(cell_val) | is.numeric(cell_val))){
+
+      if(is.character(cell_val)){
         if(Encoding(cell_val) %in% "UTF-8"){
-          
           question <- c(question, col_name)
           old_value <- c(old_value, cell_val)
           sheet_name <- c(sheet_name, sheet_i)
-          
-          #because the uuid column names is different in sheets
+          #because the uuid column name is different in sheets
           if(sheet_i %in% "ACO_SMART_Survey_2022"){
             uuid <- c(uuid, data$`_uuid`[i])
           } else {
@@ -80,10 +72,14 @@ for(sheet_i in sheet_list){
       }
     }
   }
-  sheet_log <- data.frame(question, old_value, new_value=NA, uuid, sheet_name, Remarks=NA)
-  log <- rbind(log, sheet_log)
+  log <- data.frame(question, old_value, new_value=NA, uuid, sheet_name, Remarks=NA) %>% unique()
 }
-log <- log[-1,]
+
+main_log <- generate_translation_log(main, "ACO_SMART_Survey_2022")
+roster_log <- generate_translation_log(hh_roster %>% select(-name_lower), "hh_roster")
+log <- rbind(main_log, roster_log) %>% 
+  anti_join(., translation_log_no, by=(c("uuid", "question", "old_value")))
+
 
 sample_sheet <- read_excel(sample_sheet_path)
 sample_sheet <- sample_sheet %>% filter(CLUSTER != "RC") %>% mutate(CLUSTER = as.numeric(CLUSTER))
@@ -254,10 +250,20 @@ n_cluster_by_date_province <- main %>%
   group_by(Date, province) %>% 
   count(CLUSTER, name = "N")
 
+#cleaned data only list
+cleaned_data <- list(
+  ACO_SMART_Survey_2022 = main,
+  hh_roster = hh_roster,
+  child = child,
+  preg_lact_wom = preg_lact_wom
+)
+
 # Export Data -------------------------------------------------------------
 
 openxlsx::write.xlsx(export_list, paste0("output/ACO_SMART_Survey_2022_", lubridate::today() ,".xlsx"))
 openxlsx::write.xlsx(n_cluster_by_date_province, paste0("output/count_of_clusters_by_date_province_", lubridate::today() ,".xlsx"))
 #export translation log
 writexl::write_xlsx(log, "output/translation_log.xlsx")
+#export cleaned data
+writexl::write_xlsx(cleaned_data, "output/cleaned_data.xlsx")
 
