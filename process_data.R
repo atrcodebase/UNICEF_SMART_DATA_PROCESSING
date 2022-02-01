@@ -11,10 +11,10 @@ if(!require("lubridate")) install.packages("lubridate")
 data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_-_all_versions_-_English_-_2022-01-23-07-13-13.xlsx"
 sample_sheet_path <- "input/sample_sheet.xlsx"
 
-main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022", guess_max = 5000) %>% type_convert()
-hh_roster <- read_excel(data_path, sheet = "hh_roster", guess_max = 5000) %>% type_convert()
-child <- read_excel(data_path, sheet = "child", guess_max = 5000) %>% type_convert()
-preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000) %>% type_convert()
+main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022", guess_max = 5000)
+hh_roster <- read_excel(data_path, sheet = "hh_roster", guess_max = 5000)
+child <- read_excel(data_path, sheet = "child", guess_max = 5000)
+preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000)
 
 # Correction Log ----------------------------------------------------------
 gs4_deauth()
@@ -45,6 +45,12 @@ apply_log <- function(UNICEF_correction_log){
 
 apply_log(translation_log_yes)
 apply_log(correction_log)
+
+# Converting column data types
+main <- main %>% type_convert()
+hh_roster <- hh_roster %>% type_convert()
+child <- child %>% type_convert()
+preg_lact_wom <- preg_lact_wom %>% type_convert()
 
 # Generating Translation Log -------------------------------------------------------
 generate_translation_log <- function(data, sheet_i){
