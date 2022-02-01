@@ -228,6 +228,9 @@ child_anthropometry_data <- child_joined %>%
     HEIGHT,
     EDEMA,
     MUAC,
+    province,
+    child_malnourished,
+    child_referred,
     BIRTHDAT_2,
     MONTHS_2,
     WEIGHT_2,
@@ -238,8 +241,25 @@ child_anthropometry_data <- child_joined %>%
     WEIGHT_3,
     HEIGHT_3,
     MUAC_3
-    
   )
+
+#Province & Gender disaggregation
+min_months <- 6
+max_months <- 59
+gender_disagg <- child_anthropometry_data %>% 
+  filter(MONTHS >= min_months & MONTHS <= max_months) %>% 
+  group_by(province, CHSEX) %>% 
+  summarize(child_malnourished = sum(child_malnourished, na.rm = T),
+            child_referred = sum(child_referred, na.rm = T)) %>% 
+  ungroup() %>% 
+  mutate(Age_group = paste0(min_months,"-",max_months, " months"),
+         CHSEX = case_when(
+           CHSEX == "f" ~ "Female",
+           CHSEX == "m" ~ "Male",
+           TRUE ~ CHSEX
+         )) %>% 
+  pivot_wider(names_from = CHSEX, values_from = c(child_malnourished, child_referred))
+  
   
 # Create a list of dataframes to be exported ------------------------------
 
@@ -248,7 +268,8 @@ export_list <- list(
   hh_roster = hh_roster_joined,
   child = child_joined,
   preg_lact_wom = preg_lact_wom_joined,
-  child_anthropometry_data = child_anthropometry_data
+  child_anthropometry_data = child_anthropometry_data,
+  gender_disagg = gender_disagg
 )
 
 # count of cluster, by date and province
