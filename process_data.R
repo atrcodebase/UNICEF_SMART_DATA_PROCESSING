@@ -43,7 +43,7 @@ apply_log <- function(UNICEF_correction_log, log_type){
     } else if(var_i %in% colnames(child)){
       
       #handling the two unique identifiers for child_status
-      if(log_type %in% "correction" & var_i %in% "child_status"){
+      if(log_type %in% "correction" & var_i %in% c("child_status", "CLOTHES", "dob_known")){
         ch_hh_pos <- UNICEF_correction_log$child_hh_position[rowi]
         child[child$`_submission__uuid` == uuid_i & child$child_hh_position == ch_hh_pos, var_i] <<- new_i
       } else {
