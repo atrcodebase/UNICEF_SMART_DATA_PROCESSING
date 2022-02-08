@@ -16,6 +16,10 @@ hh_roster <- read_excel(data_path, sheet = "hh_roster", guess_max = 5000)
 child <- read_excel(data_path, sheet = "child", guess_max = 5000)
 preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000)
 
+#add child_status column
+child <- child %>% 
+  mutate(child_status = "", .after = CHSEX)
+
 # Correction Log ----------------------------------------------------------
 gs4_deauth()
 translation_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Am11iZsn4xQJYFMlb9b3y_DtON13CcSNTVBj06ac1jDsvntgfCArhwtT2Ra73po3UqEtbwHmePWZ/pub?gid=662183319&single=true&output=csv")
@@ -23,28 +27,36 @@ translation_log_yes <- translation_log %>% filter(`Translated?` %in% "Yes")
 translation_log_no <- translation_log %>% filter(`Translated?` %in% "No")
 correction_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vR8Am11iZsn4xQJYFMlb9b3y_DtON13CcSNTVBj06ac1jDsvntgfCArhwtT2Ra73po3UqEtbwHmePWZ/pub?gid=1795705035&single=true&output=csv")
 
-apply_log <- function(UNICEF_correction_log){
+apply_log <- function(UNICEF_correction_log, log_type){
   for (rowi in 1:nrow(UNICEF_correction_log)){
     uuid_i <- UNICEF_correction_log$uuid[rowi]
     var_i <- UNICEF_correction_log$question[rowi]
     old_i <- UNICEF_correction_log$old_value[rowi]
     new_i <- UNICEF_correction_log$new_value[rowi]
     print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
+    
     # Find the variable according to the row of the cleaning log
     if(var_i %in% colnames(main)){
       main[main$`_uuid` == uuid_i, var_i] <<- new_i
     } else if(var_i %in% colnames(hh_roster)){
       hh_roster[hh_roster$`_submission__uuid` == uuid_i, var_i] <<- new_i
     } else if(var_i %in% colnames(child)){
-      child[child$`_submission__uuid` == uuid_i, var_i] <<- new_i
+      
+      #handling the two unique identifiers for child_status
+      if(log_type %in% "correction" & var_i %in% "child_status"){
+        ch_hh_pos <- UNICEF_correction_log$child_hh_position[rowi]
+        child[child$`_submission__uuid` == uuid_i & child$child_hh_position == ch_hh_pos, var_i] <<- new_i
+      } else {
+        child[child$`_submission__uuid` == uuid_i, var_i] <<- new_i
+      } 
     } else if(var_i %in% colnames(preg_lact_wom)){
       preg_lact_wom[preg_lact_wom$`_submission__uuid` == uuid_i, var_i] <<- new_i
     }
   }
 }
 
-apply_log(translation_log_yes)
-apply_log(correction_log)
+apply_log(translation_log_yes, log_type = "translation")
+apply_log(correction_log, log_type = "correction")
 
 # Converting column data types
 main <- main %>% type_convert()
@@ -292,5 +304,4 @@ openxlsx::write.xlsx(n_cluster_by_date_province, paste0("output/count_of_cluster
 #export translation log
 writexl::write_xlsx(log, "output/translation_log.xlsx")
 #export cleaned data
-writexl::write_xlsx(cleaned_data, "output/cleaned_data.xlsx")
-
+writexl::write_xlsx(cleaned_data, paste0("output/ACO_SMART_Survey_2022_cleaned_data_", today(),".xlsx"))
