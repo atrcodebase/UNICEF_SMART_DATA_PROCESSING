@@ -19,6 +19,8 @@ preg_lact_wom <- read_excel(data_path, sheet = "preg_lact_wom", guess_max = 5000
 #add child_status column
 child <- child %>% 
   mutate(child_status = "", .after = CHSEX)
+preg_lact_wom <- preg_lact_wom %>% 
+  mutate(wom_status = "", .after = wom_valid)
 
 # Correction Log ----------------------------------------------------------
 gs4_deauth()
@@ -33,24 +35,31 @@ apply_log <- function(UNICEF_correction_log, log_type){
     var_i <- UNICEF_correction_log$question[rowi]
     old_i <- UNICEF_correction_log$old_value[rowi]
     new_i <- UNICEF_correction_log$new_value[rowi]
-    print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
+    if(log_type %in% "correction"){
+      ch_hh_pos <- UNICEF_correction_log$child_hh_position[rowi]
+      wom_hh_pos <- UNICEF_correction_log$wom_hh_position[rowi]
+    }
     
-    # Find the variable according to the row of the cleaning log
+    print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
+    #Find which sheet the variable belongs to
     if(var_i %in% colnames(main)){
-      main[main$`_uuid` == uuid_i, var_i] <<- new_i
+      main[main$`_uuid` %in% uuid_i, var_i] <<- new_i
     } else if(var_i %in% colnames(hh_roster)){
-      hh_roster[hh_roster$`_submission__uuid` == uuid_i, var_i] <<- new_i
+      hh_roster[hh_roster$`_submission__uuid` %in% uuid_i, var_i] <<- new_i
     } else if(var_i %in% colnames(child)){
-      
       #handling the two unique identifiers for child_status
-      if(log_type %in% "correction" & var_i %in% c("child_status", "CLOTHES", "dob_known")){
-        ch_hh_pos <- UNICEF_correction_log$child_hh_position[rowi]
-        child[child$`_submission__uuid` == uuid_i & child$child_hh_position == ch_hh_pos, var_i] <<- new_i
+      if(!is.na(ch_hh_pos)){
+        child[child$`_submission__uuid` %in% uuid_i & child$child_hh_position %in% ch_hh_pos, var_i] <<- new_i
       } else {
-        child[child$`_submission__uuid` == uuid_i, var_i] <<- new_i
-      } 
+        child[child$`_submission__uuid` %in% uuid_i, var_i] <<- new_i
+      }
     } else if(var_i %in% colnames(preg_lact_wom)){
-      preg_lact_wom[preg_lact_wom$`_submission__uuid` == uuid_i, var_i] <<- new_i
+      #handling the two unique identifiers for wom_status
+      if(!is.na(wom_hh_pos)){
+        preg_lact_wom[preg_lact_wom$`_submission__uuid` %in% uuid_i & preg_lact_wom$wom_hh_position %in% wom_hh_pos, var_i] <<- new_i
+      } else {
+        preg_lact_wom[preg_lact_wom$`_submission__uuid` %in% uuid_i, var_i] <<- new_i
+      }
     }
   }
 }
@@ -256,6 +265,7 @@ child_anthropometry_data <- child_joined %>%
   )
 
 #Province & Gender disaggregation
+#!!! update the min_months & max_months accordingly !!!
 min_months <- 6
 max_months <- 59
 gender_disagg <- child_anthropometry_data %>% 
@@ -272,9 +282,7 @@ gender_disagg <- child_anthropometry_data %>%
          )) %>% 
   pivot_wider(names_from = CHSEX, values_from = c(child_malnourished, child_referred))
   
-  
 # Create a list of dataframes to be exported ------------------------------
-
 export_list <- list(
   ACO_SMART_Survey_2022 = main,
   hh_roster = hh_roster_joined,
@@ -298,7 +306,6 @@ cleaned_data <- list(
 )
 
 # Export Data -------------------------------------------------------------
-
 openxlsx::write.xlsx(export_list, paste0("output/ACO_SMART_Survey_2022_", lubridate::today() ,".xlsx"))
 openxlsx::write.xlsx(n_cluster_by_date_province, paste0("output/count_of_clusters_by_date_province_", lubridate::today() ,".xlsx"))
 #export translation log
