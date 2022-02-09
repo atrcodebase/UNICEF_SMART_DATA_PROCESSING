@@ -72,6 +72,11 @@ main <- main %>% type_convert()
 hh_roster <- hh_roster %>% type_convert()
 child <- child %>% type_convert()
 preg_lact_wom <- preg_lact_wom %>% type_convert()
+  
+rejection_log <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1VeGTxPUpX44el3Jr6tY15OalMiigUhCqypJKGudYpbw/edit?usp=sharing", sheet = "Rejection_log")
+
+main <- main %>% 
+  filter(`_uuid` %notin% unique(rejection_log$UUID))
 
 # Generating Translation Log -------------------------------------------------------
 generate_translation_log <- function(data, sheet_i){
