@@ -28,7 +28,13 @@ preg_lact_wom <- preg_lact_wom %>%
          uuid = case_when(
            !is.na(wom_hh_position) ~ paste0(`_submission__uuid`,wom_hh_position),
            TRUE ~ `_submission__uuid`
-         ))
+         ),
+         wom_valid = case_when(
+           wom_valid == "f" ~ "female",
+           wom_valid == "m" ~ "male",
+           TRUE ~ NA_character_
+         )) %>% 
+  filter(wom_valid %in% "female" & (curr_pregnant %in% 1 | curr_breastfeed %in% 1))
 
 #Raw Data for log verification
 main_raw <- main
@@ -286,34 +292,7 @@ preg_lact_wom_joined <- preg_lact_wom %>% left_join(main_sub, by = c("_submissio
 
 
 # Create a subset for ENA software ----------------------------------------
-child_anthropometry_data <- child_joined %>% 
-  select(
-    Date,
-    CLUSTER,
-    TEAM,
-    ID = `_index`,
-    HH,
-    CHSEX,
-    BIRTHDAT,
-    MONTHS,
-    WEIGHT,
-    HEIGHT,
-    EDEMA,
-    MUAC,
-    province,
-    child_malnourished,
-    child_referred,
-    BIRTHDAT_2,
-    MONTHS_2,
-    WEIGHT_2,
-    HEIGHT_2,
-    MUAC_2,
-    BIRTHDAT_3,
-    MONTHS_3,
-    WEIGHT_3,
-    HEIGHT_3,
-    MUAC_3
-  )
+child_anthropometry_data <- child_joined
 
 #Province & Gender disaggregation
 #!!! update the min_months & max_months accordingly !!!
@@ -333,9 +312,24 @@ gender_disagg <- child_anthropometry_data %>%
          )) %>% 
   pivot_wider(names_from = CHSEX, values_from = c(child_malnourished, child_referred))
 
+child_anthropometry_data <- child_anthropometry_data %>% 
+  select(
+    Date,
+    CLUSTER,
+    TEAM,
+    ID = `_index`,
+    HH,
+    CHSEX,
+    BIRTHDAT,
+    MONTHS,
+    WEIGHT,
+    HEIGHT,
+    EDEMA,
+    MUAC,
+    province
+  )
 
 # Create a list of dataframes to be exported ------------------------------
-
 export_list <- list(
   ACO_SMART_Survey_2022_New_Round = main,
   hh_roster = hh_roster_joined,
