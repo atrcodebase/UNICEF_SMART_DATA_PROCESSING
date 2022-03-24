@@ -9,7 +9,7 @@ source("R/custom_functions.R")
 `%notin%` <- Negate(`%in%`)
 
 # Read Data ---------------------------------------------------------------
-data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-03-19-16-48-03.xlsx"
+data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-03-24-19-21-18.xlsx"
 sample_sheet_path <- "input/sample_sheet.xlsx"
 
 main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022_New_Round", guess_max = 5000)
@@ -65,8 +65,32 @@ UNICEF_correction_log <- correction_log %>%
   select(all_of(cols)) %>% 
   rbind(translation_log_yes %>% select(all_of(cols)))
 
+
+# extract question types from each data set ------------------------
+col_names <- c()
+col_types <- c()
+
+datasets <- c("main", "hh_roster", "child", "preg_lact_wom")
+for (data_var in datasets) {
+  data <- get(data_var)
+  
+  for (col in colnames(data)) {
+    col_names <- c(col_names, col) 
+    col_types <- c(col_types, typeof(data[[col]]))
+  }
+}
+
+ques_types <- data.frame(
+  question = col_names,
+  question_type = col_types
+)
+
+UNICEF_correction_log <- UNICEF_correction_log %>% 
+  left_join(ques_types, by="question")
+
 #Apply Log
 apply_log(UNICEF_correction_log)
+
 
 #Test if log is applied correctly------------------------
 main_log <- verify_log_changes(main_raw, main, "_uuid")
@@ -189,7 +213,7 @@ table(main$Date)
 # main <- main %>% filter(Date == '2022-10-24')
 
 # Filter by Date Range
-main <- main %>% filter(Date > '2022-01-23' & Date < "2022-01-25")
+main <- main %>% filter(Date > '2022-01-01' & Date < "2022-04-25")
 
 
 # Create A subset of main sheet to be merged with child sheets ------------
