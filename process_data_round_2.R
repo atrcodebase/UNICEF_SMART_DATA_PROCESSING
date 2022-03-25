@@ -99,9 +99,11 @@ child_log <- verify_log_changes(child_raw, child, "uuid")
 wom_log <- verify_log_changes(preg_lact_wom_raw, preg_lact_wom, "uuid")
 #Merging the changes
 manual_log <- rbind(main_log, roster_log, child_log, wom_log)
+#temporary (will change later)
+UNICEF_correction_log[["new_value"]] <- as.character(UNICEF_correction_log[["new_value"]])
 
 #if discrep is null, then the log is applied correctly
-discrep <- anti_join(UNICEF_correction_log, manual_log, c("uuid", "question", "new_value"))
+discrep <- anti_join(UNICEF_correction_log[1:4], manual_log, c("uuid", "question", "new_value"))
 discrep
 
 # Converting column data types

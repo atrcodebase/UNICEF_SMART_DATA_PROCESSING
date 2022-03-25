@@ -4,11 +4,12 @@ apply_log <- function(UNICEF_correction_log){
     uuid_i <- UNICEF_correction_log$uuid[rowi]
     var_i <- UNICEF_correction_log$question[rowi]
     old_i <- UNICEF_correction_log$old_value[rowi]
-    new_i <- UNICEF_correction_log$new_value[rowi]
     question_type <- UNICEF_correction_log$question_type[rowi]
     
     if (question_type %in% c("numeric", "double", "integer")) {
-      new_i  <- as.numeric(new_i)
+      new_i  <- as.numeric(UNICEF_correction_log$new_value[rowi])
+    } else {
+      new_i <- as.character(UNICEF_correction_log$new_value[rowi])
     }
     
     print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
