@@ -9,7 +9,7 @@ source("R/custom_functions.R")
 `%notin%` <- Negate(`%in%`)
 
 # Read Data ---------------------------------------------------------------
-data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-03-24-19-21-18.xlsx"
+data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-03-27-19-19-14.xlsx"
 sample_sheet_path <- "input/sample_sheet.xlsx"
 
 main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022_New_Round", guess_max = 5000)
@@ -38,6 +38,14 @@ preg_lact_wom <- preg_lact_wom %>%
            TRUE ~ NA_character_
          )) %>% 
   filter(wom_valid %in% "female" & (curr_pregnant %in% 1 | curr_breastfeed %in% 1))
+
+# #Temporary
+# main$start <- as.character(main$start)
+# 
+# fmt = "%Y-%m-%d %H:%M:%S"
+# format.Date(openxlsx::convertToDateTime(new_i, fmt))
+# 
+# format(strptime(new_i, format =  "%m/%d/%Y %I:%M:%S"), "%m/%d/%Y %I:%M:%S %")
 
 #Raw Data for log verification
 main_raw <- main
@@ -76,7 +84,7 @@ for (data_var in datasets) {
   
   for (col in colnames(data)) {
     col_names <- c(col_names, col) 
-    col_types <- c(col_types, typeof(data[[col]]))
+    col_types <- c(col_types, class(data[[col]])[1])
   }
 }
 

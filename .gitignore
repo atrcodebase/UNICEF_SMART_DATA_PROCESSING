@@ -2,7 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-
 *.xlsx
 *.xls
 *.csv
@@ -11,3 +10,4 @@
 *.docx
 *.DS_Store
 *.zip
+test.R

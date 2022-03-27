@@ -8,6 +8,8 @@ apply_log <- function(UNICEF_correction_log){
     
     if (question_type %in% c("numeric", "double", "integer")) {
       new_i  <- as.numeric(UNICEF_correction_log$new_value[rowi])
+    } else if (question_type %in% "POSIXct") {
+      new_i <- as_datetime(UNICEF_correction_log$new_value[rowi], format =  "%m/%d/%Y %I:%M:%S %p")
     } else {
       new_i <- as.character(UNICEF_correction_log$new_value[rowi])
     }
