@@ -9,7 +9,7 @@ source("R/custom_functions.R")
 `%notin%` <- Negate(`%in%`)
 
 # Read Data ---------------------------------------------------------------
-data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-03-27-19-19-14.xlsx"
+data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-03-29-12-11-52.xlsx"
 sample_sheet_path <- "input/sample_sheet.xlsx"
 
 main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022_New_Round", guess_max = 5000)
@@ -20,6 +20,8 @@ sample_sheet <- read_excel(sample_sheet_path)
 sample_sheet <- sample_sheet %>% filter(CLUSTER != "RC") %>% mutate(CLUSTER = as.numeric(CLUSTER))
 
 #add child_status column & creates unique UUID column
+hh_roster <- hh_roster %>% 
+  mutate(uuid = paste0(`_submission__uuid`,`_index`))
 child <- child %>% 
   mutate(child_status = "", .after = CHSEX,
          uuid = case_when(
@@ -39,14 +41,6 @@ preg_lact_wom <- preg_lact_wom %>%
          )) %>% 
   filter(wom_valid %in% "female" & (curr_pregnant %in% 1 | curr_breastfeed %in% 1))
 
-# #Temporary
-# main$start <- as.character(main$start)
-# 
-# fmt = "%Y-%m-%d %H:%M:%S"
-# format.Date(openxlsx::convertToDateTime(new_i, fmt))
-# 
-# format(strptime(new_i, format =  "%m/%d/%Y %I:%M:%S"), "%m/%d/%Y %I:%M:%S %")
-
 #Raw Data for log verification
 main_raw <- main
 hh_roster_raw <- hh_roster
@@ -64,10 +58,10 @@ rejection_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX
 #Merging the logs
 cols <- c("uuid", "question", "old_value", "new_value")
 UNICEF_correction_log <- correction_log %>% 
-  mutate(uuid = uuid,
-         uuid = case_when(
+  mutate(uuid = case_when(
            !is.na(child_hh_position)  ~ paste0(uuid,child_hh_position),
            !is.na(wom_hh_position) ~ paste0(uuid,wom_hh_position),
+           !is.na(index) ~ paste0(uuid, index),
            TRUE ~ uuid
          )) %>% 
   select(all_of(cols)) %>% 
@@ -102,13 +96,11 @@ apply_log(UNICEF_correction_log)
 
 #Test if log is applied correctly------------------------
 main_log <- verify_log_changes(main_raw, main, "_uuid")
-roster_log <- verify_log_changes(hh_roster_raw, hh_roster, "_submission__uuid")
+roster_log <- verify_log_changes(hh_roster_raw, hh_roster, "uuid")
 child_log <- verify_log_changes(child_raw, child, "uuid")
 wom_log <- verify_log_changes(preg_lact_wom_raw, preg_lact_wom, "uuid")
 #Merging the changes
 manual_log <- rbind(main_log, roster_log, child_log, wom_log)
-#temporary (will change later)
-UNICEF_correction_log[["new_value"]] <- as.character(UNICEF_correction_log[["new_value"]])
 
 #if discrep is null, then the log is applied correctly
 discrep <- anti_join(UNICEF_correction_log[1:4], manual_log, c("uuid", "question", "new_value"))
@@ -116,7 +108,7 @@ discrep
 
 # Converting column data types
 main <- main %>% type_convert()
-hh_roster <- hh_roster %>% type_convert()
+hh_roster <- hh_roster %>%  select(-uuid) %>% type_convert()
 child <- child %>% select(-uuid) %>% type_convert()
 preg_lact_wom <- preg_lact_wom %>% select(-uuid) %>% type_convert()
 

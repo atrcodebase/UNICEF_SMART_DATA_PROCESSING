@@ -9,7 +9,8 @@ apply_log <- function(UNICEF_correction_log){
     if (question_type %in% c("numeric", "double", "integer")) {
       new_i  <- as.numeric(UNICEF_correction_log$new_value[rowi])
     } else if (question_type %in% "POSIXct") {
-      new_i <- as_datetime(UNICEF_correction_log$new_value[rowi], format =  "%m/%d/%Y %I:%M:%S %p")
+      new_i <- as_datetime(UNICEF_correction_log$new_value[rowi], format = "%Y-%m-%d %H:%M:%S")
+      # "%m/%d/%Y %I:%M:%S %p"
     } else {
       new_i <- as.character(UNICEF_correction_log$new_value[rowi])
     }
@@ -19,7 +20,7 @@ apply_log <- function(UNICEF_correction_log){
     if(var_i %in% colnames(main)){
       main[main$`_uuid` %in% uuid_i, var_i] <<- new_i
     } else if(var_i %in% colnames(hh_roster)){
-      hh_roster[hh_roster$`_submission__uuid` %in% uuid_i, var_i] <<- new_i
+      hh_roster[hh_roster$uuid %in% uuid_i, var_i] <<- new_i
     } else if(var_i %in% colnames(child)){
       child[child$uuid %in% uuid_i, var_i] <<- new_i
     } else if(var_i %in% colnames(preg_lact_wom)){
@@ -41,6 +42,11 @@ verify_log_changes <- function(raw_data, cleaned_data, identifier){
       id <- cleaned_data[[identifier]][i]
       oldVal <- raw_data[[col_name]][raw_data[[identifier]] %in% id]
       newVal <- cleaned_data[[col_name]][i]
+      
+      if(col_name %in% c("start", "end")){
+        oldVal <- as.character(oldVal)
+        newVal <- as.character(newVal)
+      }
       
       if(newVal %notin% oldVal){
         uuid <- c(uuid, id)
