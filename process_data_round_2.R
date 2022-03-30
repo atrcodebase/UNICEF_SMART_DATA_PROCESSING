@@ -1,3 +1,4 @@
+#test: this line is added as a test
 if(!require("dplyr")) install.packages("dplyr")
 if(!require("readxl")) install.packages("readxl")
 if(!require("tidyr")) install.packages("tidyr")
@@ -9,7 +10,7 @@ source("R/custom_functions.R")
 `%notin%` <- Negate(`%in%`)
 
 # Read Data ---------------------------------------------------------------
-data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-03-29-12-11-52.xlsx"
+data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-03-30-08-41-46.xlsx"
 sample_sheet_path <- "input/sample_sheet.xlsx"
 
 main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022_New_Round", guess_max = 5000)
@@ -127,7 +128,7 @@ main$consent <- as.character(main$consent)
 main %>% 
   group_by(TEAM) %>% 
   summarize(avg_household_members = round(mean(numfamily))) %>% 
-  # filter(avg_household_members < 6 & avg_household_members > 10) %>% 
+  filter(avg_household_members < 6 | avg_household_members > 10) %>%
   ungroup()
 
 #Removing rejected KEYs
