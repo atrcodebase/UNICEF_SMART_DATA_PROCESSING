@@ -88,3 +88,11 @@ generate_translation_log <- function(data, sheet_i){
   }
   log <- data.frame(question, old_value, new_value=NA, uuid, sheet_name, Remarks=NA) %>% unique()
 }
+
+# use setequal instead of identical
+read_excel_func <- function(file) {
+  file %>% 
+    excel_sheets() %>%
+    set_names() %>%
+    map(read_excel, path = file, guess_max = 100000)
+}
