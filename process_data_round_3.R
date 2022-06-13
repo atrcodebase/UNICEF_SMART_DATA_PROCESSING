@@ -12,8 +12,8 @@ source("R/custom_functions.R")
 `%notin%` <- Negate(`%in%`)
 
 # Read Data ---------------------------------------------------------------
-data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-05-16-04-28-10.xlsx"
-sample_sheet_path <- "input/sample_sheet.xlsx"
+data_path <- "input/raw_data/xml/ACO_SMART_Survey_2022_New_Round_-_all_versions_-_False_-_2022-06-13-05-30-41.xlsx"
+sample_sheet_path <- "input/UNICEF_SMART_Round3_Sampling_Frame - Updated.xlsx"
 
 main <- read_excel(data_path, sheet = "ACO_SMART_Survey_2022_New_Round", guess_max = 5000)
 hh_roster <- read_excel(data_path, sheet = "hh_roster", guess_max = 5000)
@@ -50,64 +50,65 @@ hh_roster_raw <- hh_roster
 child_raw <- child
 preg_lact_wom_raw <- preg_lact_wom
 
-# Correction Log (not finalized yet) ----------------------------------------------------------
-gs4_deauth()
-translation_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vSBUVtEC6ehPCFUJ9qIlJP42XmVRrX2NfQ3UejjtC6TYKByM8tn3W5hwf-CfGKKSxysigbk4PhJGWEw/pub?gid=662183319&single=true&output=csv")
-translation_log_yes <- translation_log %>% filter(`Translated?` %in% "Yes")
-translation_log_no <- translation_log %>% filter(`Translated?` %in% "No")
-correction_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vSBUVtEC6ehPCFUJ9qIlJP42XmVRrX2NfQ3UejjtC6TYKByM8tn3W5hwf-CfGKKSxysigbk4PhJGWEw/pub?gid=1795705035&single=true&output=csv")
-rejection_log <- readr::read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vSBUVtEC6ehPCFUJ9qIlJP42XmVRrX2NfQ3UejjtC6TYKByM8tn3W5hwf-CfGKKSxysigbk4PhJGWEw/pub?gid=1383764528&single=true&output=csv")
-
-#Merging the logs
-cols <- c("uuid", "question", "old_value", "new_value")
-UNICEF_correction_log <- correction_log %>% 
-  mutate(uuid = case_when(
-    !is.na(child_hh_position)  ~ paste0(uuid,child_hh_position),
-    !is.na(wom_hh_position) ~ paste0(uuid,wom_hh_position),
-    !is.na(index) ~ paste0(uuid, index),
-    TRUE ~ uuid
-  )) %>% 
-  select(all_of(cols)) %>% 
-  rbind(translation_log_yes %>% select(all_of(cols)))
-
-
-# extract question types from each data set (not finalized yet) ------------------------
-col_names <- c()
-col_types <- c()
-
-datasets <- c("main", "hh_roster", "child", "preg_lact_wom")
-for (data_var in datasets) {
-  data <- get(data_var)
-  
-  for (col in colnames(data)) {
-    col_names <- c(col_names, col) 
-    col_types <- c(col_types, class(data[[col]])[1])
-  }
-}
-
-ques_types <- data.frame(
-  question = col_names,
-  question_type = col_types
-)
-
-UNICEF_correction_log <- UNICEF_correction_log %>% 
-  left_join(ques_types, by="question")
-
-#Apply Log
-apply_log(UNICEF_correction_log)
+#to be updated ***
+# Correction Log ----------------------------------------------------------
+# gs4_deauth()
+# translation_log <- readr::read_csv("")
+# translation_log_yes <- translation_log %>% filter(`Translated?` %in% "Yes")
+# translation_log_no <- translation_log %>% filter(`Translated?` %in% "No")
+# correction_log <- readr::read_csv("")
+# rejection_log <- readr::read_csv("")
+# 
+# #Merging the logs
+# cols <- c("uuid", "question", "old_value", "new_value")
+# UNICEF_correction_log <- correction_log %>% 
+#   mutate(uuid = case_when(
+#     !is.na(child_hh_position)  ~ paste0(uuid,child_hh_position),
+#     !is.na(wom_hh_position) ~ paste0(uuid,wom_hh_position),
+#     !is.na(index) ~ paste0(uuid, index),
+#     TRUE ~ uuid
+#   )) %>% 
+#   select(all_of(cols)) %>% 
+#   rbind(translation_log_yes %>% select(all_of(cols)))
 
 
-#Test if log is applied correctly (not finalized yet) ------------------------
-main_log <- verify_log_changes(main_raw, main, "_uuid")
-roster_log <- verify_log_changes(hh_roster_raw, hh_roster, "uuid")
-child_log <- verify_log_changes(child_raw, child, "uuid")
-wom_log <- verify_log_changes(preg_lact_wom_raw, preg_lact_wom, "uuid")
-#Merging the changes
-manual_log <- rbind(main_log, roster_log, child_log, wom_log)
+# extract question types from each data set (not finalized yet)
+# col_names <- c()
+# col_types <- c()
+# 
+# datasets <- c("main", "hh_roster", "child", "preg_lact_wom")
+# for (data_var in datasets) {
+#   data <- get(data_var)
+#   
+#   for (col in colnames(data)) {
+#     col_names <- c(col_names, col) 
+#     col_types <- c(col_types, class(data[[col]])[1])
+#   }
+# }
+# 
+# ques_types <- data.frame(
+#   question = col_names,
+#   question_type = col_types
+# )
+# 
+# UNICEF_correction_log <- UNICEF_correction_log %>% 
+#   left_join(ques_types, by="question")
+# 
+# #Apply Log
+# apply_log(UNICEF_correction_log)
 
-#if discrep is null, then the log is applied correctly
-discrep <- anti_join(UNICEF_correction_log[1:4], manual_log, c("uuid", "question", "new_value"))
-discrep
+# 
+# #Test if log is applied correctly
+# main_log <- verify_log_changes(main_raw, main, "_uuid")
+# roster_log <- verify_log_changes(hh_roster_raw, hh_roster, "uuid")
+# child_log <- verify_log_changes(child_raw, child, "uuid")
+# wom_log <- verify_log_changes(preg_lact_wom_raw, preg_lact_wom, "uuid")
+# #Merging the changes
+# manual_log <- rbind(main_log, roster_log, child_log, wom_log)
+# 
+# #if discrep is null, then the log is applied correctly
+# discrep <- anti_join(UNICEF_correction_log[1:4], manual_log, c("uuid", "question", "new_value"))
+# discrep
 
 # Converting column data types
 main <- main %>% type_convert()
@@ -118,8 +119,9 @@ preg_lact_wom <- preg_lact_wom %>% select(-uuid) %>% type_convert()
 # Generating Translation Log -------------------------------------------------------
 main_log <- generate_translation_log(main, "ACO_SMART_Survey_2022_New_Round")
 roster_log <- generate_translation_log(hh_roster %>% select(-name_lower), "hh_roster")
-untranslated_log <- rbind(main_log, roster_log) %>% 
-  anti_join(., translation_log_no, by=(c("uuid", "question", "old_value")))
+untranslated_log <- rbind(main_log, roster_log) 
+# %>% 
+#   anti_join(., translation_log_no, by=(c("uuid", "question", "old_value")))
 
 # Change Data type
 main$province <- as.character(main$province)
@@ -133,9 +135,10 @@ main %>%
   filter(avg_household_members < 6 | avg_household_members > 10) %>%
   ungroup()
 
+#to be updated ***
 #Removing rejected KEYs
-main <- main %>% 
-  filter(`_uuid` %notin% unique(rejection_log$UUID))
+# main <- main %>% 
+#   filter(`_uuid` %notin% unique(rejection_log$UUID))
 
 # Recode Data -------------------------------------------------------------
 main <- main %>% 
@@ -195,22 +198,11 @@ main <- main %>%
     -c(
       `__version__`,
       `_version_`,
-      `_version__001`,
-      `_version__002`,
-      `_version__003`,
-      `_version__004`,
-      `_version__005`,
-      `_version__005`,
     )
   )
 
 
 # Filter Data By Date  ----------------------------------------------------
-
-# Filter Only Pilot Data
-# uuid_pilot <- read_excel("input/UUID_Pilot.xlsx")
-# main <- main %>% filter(`_uuid` %in% uuid_pilot$`_uuid`)
-
 # Check Number of Interviews by date
 table(main$Date)
 
@@ -218,7 +210,7 @@ table(main$Date)
 # main <- main %>% filter(Date == '2022-10-24')
 
 # Filter by Date Range
-main <- main %>% filter(Date > '2022-01-01' & Date < "2022-04-25")
+main <- main %>% filter(Date > '2022-06-11' & Date < "2022-06-13")
 
 
 # Create A subset of main sheet to be merged with child sheets ------------
@@ -285,41 +277,43 @@ child_anthropometry_data <- child_joined %>%
     HEIGHT,
     EDEMA,
     MUAC,
-    province
+    province,
+    child_status
   )
 
+#to be updated ***
 # Filter By Provinces  -------------------------------------
-## Hirat
-main_hirat <- main %>% filter(province %in% "Hirat")
-hh_roster_joined_hirat <- hh_roster_joined %>%  filter(province %in% "Hirat")
-child_joined_hirat <- child_joined %>% filter(province %in% "Hirat")
-preg_lact_wom_joined_hirat <- preg_lact_wom_joined %>% filter(province %in% "Hirat")
-child_anthropometry_data_hirat <- child_anthropometry_data %>% 
-  filter(province %in% "Hirat")
-
-## Badghis
-main_badghis <- main %>% filter(province %in% "Badghis")
-hh_roster_joined_badghis <- hh_roster_joined %>%  filter(province %in% "Badghis")
-child_joined_badghis <- child_joined %>% filter(province %in% "Badghis")
-preg_lact_wom_joined_badghis <- preg_lact_wom_joined %>% filter(province %in% "Badghis")
-child_anthropometry_data_badghis <- child_anthropometry_data %>% 
-  filter(province %in% "Badghis")
-
-## Faryab
-main_faryab <- main %>% filter(province %in% "Faryab")
-hh_roster_joined_faryab <- hh_roster_joined %>%  filter(province %in% "Faryab")
-child_joined_faryab <- child_joined %>% filter(province %in% "Faryab")
-preg_lact_wom_joined_faryab <- preg_lact_wom_joined %>% filter(province %in% "Faryab")
-child_anthropometry_data_faryab <- child_anthropometry_data %>% 
-  filter(province %in% "Faryab")
-
-## Ghor
-main_ghor <- main %>% filter(province %in% "Ghor")
-hh_roster_joined_ghor <- hh_roster_joined %>%  filter(province %in% "Ghor")
-child_joined_ghor <- child_joined %>% filter(province %in% "Ghor")
-preg_lact_wom_joined_ghor <- preg_lact_wom_joined %>% filter(province %in% "Ghor")
-child_anthropometry_data_ghor <- child_anthropometry_data %>% 
-  filter(province %in% "Ghor")
+# ## Hirat
+# main_hirat <- main %>% filter(province %in% "Hirat")
+# hh_roster_joined_hirat <- hh_roster_joined %>%  filter(province %in% "Hirat")
+# child_joined_hirat <- child_joined %>% filter(province %in% "Hirat")
+# preg_lact_wom_joined_hirat <- preg_lact_wom_joined %>% filter(province %in% "Hirat")
+# child_anthropometry_data_hirat <- child_anthropometry_data %>% 
+#   filter(province %in% "Hirat")
+# 
+# ## Badghis
+# main_badghis <- main %>% filter(province %in% "Badghis")
+# hh_roster_joined_badghis <- hh_roster_joined %>%  filter(province %in% "Badghis")
+# child_joined_badghis <- child_joined %>% filter(province %in% "Badghis")
+# preg_lact_wom_joined_badghis <- preg_lact_wom_joined %>% filter(province %in% "Badghis")
+# child_anthropometry_data_badghis <- child_anthropometry_data %>% 
+#   filter(province %in% "Badghis")
+# 
+# ## Faryab
+# main_faryab <- main %>% filter(province %in% "Faryab")
+# hh_roster_joined_faryab <- hh_roster_joined %>%  filter(province %in% "Faryab")
+# child_joined_faryab <- child_joined %>% filter(province %in% "Faryab")
+# preg_lact_wom_joined_faryab <- preg_lact_wom_joined %>% filter(province %in% "Faryab")
+# child_anthropometry_data_faryab <- child_anthropometry_data %>% 
+#   filter(province %in% "Faryab")
+# 
+# ## Ghor
+# main_ghor <- main %>% filter(province %in% "Ghor")
+# hh_roster_joined_ghor <- hh_roster_joined %>%  filter(province %in% "Ghor")
+# child_joined_ghor <- child_joined %>% filter(province %in% "Ghor")
+# preg_lact_wom_joined_ghor <- preg_lact_wom_joined %>% filter(province %in% "Ghor")
+# child_anthropometry_data_ghor <- child_anthropometry_data %>% 
+#   filter(province %in% "Ghor")
 
 
 ## Demographics
@@ -370,8 +364,9 @@ demographic_data <- rbind(
   preg_lact_wom_joined %>% 
     group_by(province) %>% 
     summarize(freq = n(),
-              parameters = "% Pregnant & Lactating Women (PLW)"))%>% 
-  left_join(total_household, by="province") %>% 
+              parameters = "% Pregnant & Lactating Women (PLW)")
+  
+  ) %>% left_join(total_household, by="province") %>% 
   mutate(perc = case_when(
     parameters %notin% c("All household members", "Average household size") ~ round((freq/total)*100, 2),
     TRUE ~ freq
@@ -406,35 +401,36 @@ export_list <- list(
   gender_disagg = gender_disagg
 )
 
-#By Province
-export_list_hirat <- list(
-  ACO_SMART_Survey_2022_New_Round = main_hirat,
-  hh_roster = hh_roster_joined_hirat,
-  child = child_joined_hirat,
-  preg_lact_wom = preg_lact_wom_joined_hirat,
-  child_anthropometry_data = child_anthropometry_data_hirat
-)
-export_list_badghis <- list(
-  ACO_SMART_Survey_2022_New_Round = main_badghis,
-  hh_roster = hh_roster_joined_badghis,
-  child = child_joined_badghis,
-  preg_lact_wom = preg_lact_wom_joined_badghis,
-  child_anthropometry_data = child_anthropometry_data_badghis
-)
-export_list_faryab <- list(
-  ACO_SMART_Survey_2022_New_Round = main_faryab,
-  hh_roster = hh_roster_joined_faryab,
-  child = child_joined_faryab,
-  preg_lact_wom = preg_lact_wom_joined_faryab,
-  child_anthropometry_data = child_anthropometry_data_faryab
-)
-export_list_ghor <- list(
-  ACO_SMART_Survey_2022_New_Round = main_ghor,
-  hh_roster = hh_roster_joined_ghor,
-  child = child_joined_ghor,
-  preg_lact_wom = preg_lact_wom_joined_ghor,
-  child_anthropometry_data = child_anthropometry_data_ghor
-)
+#to be updated ***
+# #By Province
+# export_list_hirat <- list(
+#   ACO_SMART_Survey_2022_New_Round = main_hirat,
+#   hh_roster = hh_roster_joined_hirat,
+#   child = child_joined_hirat,
+#   preg_lact_wom = preg_lact_wom_joined_hirat,
+#   child_anthropometry_data = child_anthropometry_data_hirat
+# )
+# export_list_badghis <- list(
+#   ACO_SMART_Survey_2022_New_Round = main_badghis,
+#   hh_roster = hh_roster_joined_badghis,
+#   child = child_joined_badghis,
+#   preg_lact_wom = preg_lact_wom_joined_badghis,
+#   child_anthropometry_data = child_anthropometry_data_badghis
+# )
+# export_list_faryab <- list(
+#   ACO_SMART_Survey_2022_New_Round = main_faryab,
+#   hh_roster = hh_roster_joined_faryab,
+#   child = child_joined_faryab,
+#   preg_lact_wom = preg_lact_wom_joined_faryab,
+#   child_anthropometry_data = child_anthropometry_data_faryab
+# )
+# export_list_ghor <- list(
+#   ACO_SMART_Survey_2022_New_Round = main_ghor,
+#   hh_roster = hh_roster_joined_ghor,
+#   child = child_joined_ghor,
+#   preg_lact_wom = preg_lact_wom_joined_ghor,
+#   child_anthropometry_data = child_anthropometry_data_ghor
+# )
 
 # count of cluster, by date and province
 n_cluster_by_date_province <- main %>% 
@@ -450,14 +446,15 @@ cleaned_data <- list(
 )
 
 #Export Data -------------------------------------------------------------
-openxlsx::write.xlsx(export_list, paste0("output/ACO_SMART_Survey_2022_New_Round_", lubridate::today() ,".xlsx"))
+openxlsx::write.xlsx(export_list, paste0("output/ACO_SMART_Survey_2022_Round_Three_", lubridate::today() ,".xlsx"))
 openxlsx::write.xlsx(n_cluster_by_date_province, paste0("output/count_of_clusters_by_date_province_", lubridate::today() ,".xlsx"))
-openxlsx::write.xlsx(untranslated_log, paste0("output/ACO_SMART_Survey_2022_New_Round_Translation_log_", today(),".xlsx"))
-openxlsx::write.xlsx(cleaned_data, paste0("output/ACO_SMART_Survey_2022_New_Round_cleaned_data_", today(),".xlsx"))
+openxlsx::write.xlsx(untranslated_log, paste0("output/ACO_SMART_Survey_2022_Round_Three_Translation_log_", today(),".xlsx"))
+openxlsx::write.xlsx(cleaned_data, paste0("output/ACO_SMART_Survey_2022_Round_Three_cleaned_data_", today(),".xlsx"))
+openxlsx::write.xlsx(demographic, paste0("output/ACO_SMART_Survey_2022_Demographics_", lubridate::today() ,".xlsx"))
 
-#Export by Province
-openxlsx::write.xlsx(demographic, paste0("output/province/ACO_SMART_Survey_2022_Demographics_", lubridate::today() ,".xlsx"))
-openxlsx::write.xlsx(export_list_hirat, paste0("output/province/ACO_SMART_Survey_2022_Hirat_", lubridate::today() ,".xlsx"))
-openxlsx::write.xlsx(export_list_badghis, paste0("output/province/ACO_SMART_Survey_2022_Badghis_", lubridate::today() ,".xlsx"))
-openxlsx::write.xlsx(export_list_faryab, paste0("output/province/ACO_SMART_Survey_2022_Faryab_", lubridate::today() ,".xlsx"))
-openxlsx::write.xlsx(export_list_ghor, paste0("output/province/ACO_SMART_Survey_2022_Ghor_", lubridate::today() ,".xlsx"))
+#to be updated ***
+# #Export by Province
+# openxlsx::write.xlsx(export_list_hirat, paste0("output/province/ACO_SMART_Survey_2022_Hirat_", lubridate::today() ,".xlsx"))
+# openxlsx::write.xlsx(export_list_badghis, paste0("output/province/ACO_SMART_Survey_2022_Badghis_", lubridate::today() ,".xlsx"))
+# openxlsx::write.xlsx(export_list_faryab, paste0("output/province/ACO_SMART_Survey_2022_Faryab_", lubridate::today() ,".xlsx"))
+# openxlsx::write.xlsx(export_list_ghor, paste0("output/province/ACO_SMART_Survey_2022_Ghor_", lubridate::today() ,".xlsx"))
