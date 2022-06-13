@@ -50,65 +50,66 @@ hh_roster_raw <- hh_roster
 child_raw <- child
 preg_lact_wom_raw <- preg_lact_wom
 
-#to be updated ***
+#No log added yet ***
 # Correction Log ----------------------------------------------------------
-# gs4_deauth()
-# translation_log <- readr::read_csv("")
-# translation_log_yes <- translation_log %>% filter(`Translated?` %in% "Yes")
-# translation_log_no <- translation_log %>% filter(`Translated?` %in% "No")
-# correction_log <- readr::read_csv("")
-# rejection_log <- readr::read_csv("")
-# 
-# #Merging the logs
-# cols <- c("uuid", "question", "old_value", "new_value")
-# UNICEF_correction_log <- correction_log %>% 
-#   mutate(uuid = case_when(
-#     !is.na(child_hh_position)  ~ paste0(uuid,child_hh_position),
-#     !is.na(wom_hh_position) ~ paste0(uuid,wom_hh_position),
-#     !is.na(index) ~ paste0(uuid, index),
-#     TRUE ~ uuid
-#   )) %>% 
-#   select(all_of(cols)) %>% 
-#   rbind(translation_log_yes %>% select(all_of(cols)))
+url <- "https://docs.google.com/spreadsheets/d/1MEz9dDOTrgVXJDd5Mu0nHi8b6fKdHcqGqz6CusO4Ows/edit?usp=sharing"
+gs4_deauth()
+translation_log <- read_sheet(url, sheet = "Translation_log", col_types = "c")
+translation_log_yes <- translation_log %>% filter(`Translated?` %in% "Yes")
+translation_log_no <- translation_log %>% filter(`Translated?` %in% "No")
+correction_log <- read_sheet(url, sheet = "Correction_log", col_types = "c")
+rejection_log <- read_sheet(url, sheet = "Rejection_log", col_types = "c")
+
+#Merging the logs
+cols <- c("uuid", "question", "old_value", "new_value")
+UNICEF_correction_log <- correction_log %>%
+  mutate(uuid = case_when(
+    !is.na(child_hh_position)  ~ paste0(uuid,child_hh_position),
+    !is.na(wom_hh_position) ~ paste0(uuid,wom_hh_position),
+    !is.na(index) ~ paste0(uuid, index),
+    TRUE ~ uuid
+  )) %>%
+  select(all_of(cols)) %>%
+  rbind(translation_log_yes %>% select(all_of(cols)))
 
 
-# extract question types from each data set (not finalized yet)
-# col_names <- c()
-# col_types <- c()
-# 
-# datasets <- c("main", "hh_roster", "child", "preg_lact_wom")
-# for (data_var in datasets) {
-#   data <- get(data_var)
-#   
-#   for (col in colnames(data)) {
-#     col_names <- c(col_names, col) 
-#     col_types <- c(col_types, class(data[[col]])[1])
-#   }
-# }
-# 
-# ques_types <- data.frame(
-#   question = col_names,
-#   question_type = col_types
-# )
-# 
-# UNICEF_correction_log <- UNICEF_correction_log %>% 
-#   left_join(ques_types, by="question")
-# 
-# #Apply Log
-# apply_log(UNICEF_correction_log)
+#extract question types from each data set (not finalized yet)
+col_names <- c()
+col_types <- c()
 
-# 
+datasets <- c("main", "hh_roster", "child", "preg_lact_wom")
+for (data_var in datasets) {
+  data <- get(data_var)
+
+  for (col in colnames(data)) {
+    col_names <- c(col_names, col)
+    col_types <- c(col_types, class(data[[col]])[1])
+  }
+}
+
+ques_types <- data.frame(
+  question = col_names,
+  question_type = col_types
+)
+
+UNICEF_correction_log <- UNICEF_correction_log %>%
+  left_join(ques_types, by="question")
+
+#Apply Log
+apply_log(UNICEF_correction_log)
+
+
 # #Test if log is applied correctly
-# main_log <- verify_log_changes(main_raw, main, "_uuid")
-# roster_log <- verify_log_changes(hh_roster_raw, hh_roster, "uuid")
-# child_log <- verify_log_changes(child_raw, child, "uuid")
-# wom_log <- verify_log_changes(preg_lact_wom_raw, preg_lact_wom, "uuid")
-# #Merging the changes
-# manual_log <- rbind(main_log, roster_log, child_log, wom_log)
-# 
-# #if discrep is null, then the log is applied correctly
-# discrep <- anti_join(UNICEF_correction_log[1:4], manual_log, c("uuid", "question", "new_value"))
-# discrep
+main_log <- verify_log_changes(main_raw, main, "_uuid")
+roster_log <- verify_log_changes(hh_roster_raw, hh_roster, "uuid")
+child_log <- verify_log_changes(child_raw, child, "uuid")
+wom_log <- verify_log_changes(preg_lact_wom_raw, preg_lact_wom, "uuid")
+#Merging the changes
+manual_log <- rbind(main_log, roster_log, child_log, wom_log)
+
+#if discrep is null, then the log is applied correctly
+discrep <- anti_join(UNICEF_correction_log[1:4], manual_log, c("uuid", "question", "new_value"))
+discrep
 
 # Converting column data types
 main <- main %>% type_convert()
