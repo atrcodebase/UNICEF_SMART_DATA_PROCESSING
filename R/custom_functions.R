@@ -1,3 +1,5 @@
+`%notin%` <- Negate(`%in%`)
+
 # Applying correction log
 apply_log <- function(UNICEF_correction_log){
   for (rowi in 1:nrow(UNICEF_correction_log)){
@@ -95,4 +97,25 @@ read_excel_func <- function(file) {
     excel_sheets() %>%
     set_names() %>%
     map(read_excel, path = file, guess_max = 100000)
+}
+
+#Extract Question type
+extract_question_type <- function(datasets){
+  col_names <- c()
+  col_types <- c()
+  
+  for (data_var in datasets) {
+    data <- get(data_var)
+    
+    for (col in colnames(data)) {
+      col_names <- c(col_names, col)
+      col_types <- c(col_types, class(data[[col]])[1])
+    }
+  }
+  ques_types <- data.frame(
+    question = col_names,
+    question_type = col_types
+  )
+  
+  return(ques_types)
 }
