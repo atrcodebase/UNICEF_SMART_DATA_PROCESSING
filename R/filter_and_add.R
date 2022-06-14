@@ -23,3 +23,11 @@ preg_lact_wom <- preg_lact_wom %>%
            TRUE ~ `_submission__uuid`
          )) %>% 
   filter(wom_valid %in% "f" & (curr_pregnant %in% 1 | curr_breastfeed %in% 1))
+
+#Left ------------------------------------------------------------------------------------
+left <- left %>% 
+  mutate(left = "y")
+
+#Died ------------------------------------------------------------------------------------
+died <- died %>% 
+  mutate(died = "y")

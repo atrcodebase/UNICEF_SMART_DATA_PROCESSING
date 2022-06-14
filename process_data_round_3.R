@@ -59,7 +59,7 @@ table(main$Date)
 # # Filter One Day
 # main <- main %>% filter(Date == '2022-10-24')
 # Filter by Date Range
-main <- main %>% filter(Date > '2022-06-11' & Date < "2022-06-13")
+main <- main %>% filter(Date > '2022-06-11' & Date < "2022-07-13")
 
 # Filter repeating groups based on the mainsheet -----------------------------------------
 ##Filter Children Above 59 months, this should be tracked and reported to field
@@ -95,6 +95,60 @@ main %>%
   summarize(avg_household_members = round(mean(numfamily))) %>% 
   filter(avg_household_members < 6 | avg_household_members > 10) %>%
   ungroup()
+
+# Mortality  -------------------------------------------------------------------
+main_sub <- main %>% 
+  select(
+    Date,
+    start,
+    end,
+    province,
+    district,
+    CLUSTER,
+    TEAM,
+    HH,
+    numfamily,
+    total_left,
+    total_died,
+    `_index`,
+    `_uuid`)
+
+#rooster sheet
+hh_roster_sub <- hh_roster_joined %>%
+  mutate(join = case_when(
+    join == "n" ~ NA_character_,
+    join == "y" & born == "y" ~ NA_character_,
+    TRUE ~ join),
+    left="", died="", cause="", location="") %>% 
+  select(sex, age=age_years, join, born, `_parent_index`, left, died, cause, location)
+#Left sheet
+left_sub <- left %>%
+  select(left, sex=left_gender, age=left_age_years, `_parent_index`) %>% 
+  mutate(join="", born="", died="", cause="", location="")
+#Died sheet
+died_sub <- died %>%
+  select(died, sex=died_gender, age=died_age_years, cause=cause_of_death, location=location_of_death, `_parent_index`) %>% 
+  mutate(left="", join="", born="")
+
+#Joining
+main_sub_roster <- left_join(main_sub, hh_roster_sub, by = c("_index" = "_parent_index"))
+main_sub_left <-   left_join(main_sub %>% filter(total_left > 0), left_sub, by = c("_index" = "_parent_index"))
+main_sub_died <-   left_join(main_sub %>% filter(total_died > 0), died_sub, by = c("_index" = "_parent_index"))
+  
+
+joined_data <- rbind(main_sub_roster, main_sub_left, main_sub_died) %>% 
+  mutate(across(c(sex:location), as.character)) %>% 
+  group_by(`_index`) %>% 
+  mutate(n = row_number()) %>% 
+  pivot_longer(-c(Date:`_uuid`, n), names_to = "question", values_to = "val") %>%
+  ungroup() %>% 
+  mutate(question = paste0("P",n , "_", question))
+
+joined_data_wider <- joined_data %>% 
+  pivot_wider(-n, names_from = "question", values_from = "val")
+
+openxlsx::write.xlsx(joined_data_wider, paste0("output/Mortality", lubridate::today() ,".xlsx"))
+
 
 # Export results ---------------------------------------------
 # Cumulative

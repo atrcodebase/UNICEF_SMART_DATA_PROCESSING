@@ -21,6 +21,8 @@ if (exists("unicef_smart")) {
   hh_roster <- read_excel(glue("{data_path}{unicef_smart}"), sheet = "hh_roster", guess_max = 100000, na = convert_to_na)
   child <- read_excel(glue("{data_path}{unicef_smart}"), sheet = "child", guess_max = 100000, na = convert_to_na)
   preg_lact_wom <- read_excel(glue("{data_path}{unicef_smart}"), sheet = "preg_lact_wom", guess_max = 100000, na = convert_to_na)
+  left <- read_excel(glue("{data_path}{unicef_smart}"), sheet = "left", guess_max = 100000, na = convert_to_na)
+  died <- read_excel(glue("{data_path}{unicef_smart}"), sheet = "died", guess_max = 100000, na = convert_to_na)
   
   }
 #Sample Sheet

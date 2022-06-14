@@ -36,6 +36,20 @@ preg_lact_wom_joined <- preg_lact_wom %>%
   left_join(main_sub, by = c("_submission__uuid" = "_uuid")) %>% 
   relocate(province:TEAM, .before = wom_selected_position)
 
+# #Left sheet -------------------------------------------------------------
+# left <- left %>% 
+#   filter(`_submission__uuid` %in% main$`_uuid`)
+# left_joined <- left %>% 
+#   left_join(main_sub, by = c("_submission__uuid" = "_uuid")) %>% 
+#   relocate(Date:HH, .before = left_name)
+# 
+# #Died sheet -------------------------------------------------------------
+# died <- died %>% 
+#   filter(`_submission__uuid` %in% main$`_uuid`)
+# died_joined <- died %>% 
+#   left_join(main_sub, by = c("_submission__uuid" = "_uuid")) %>% 
+#   relocate(Date:HH, .before = died_name)
+
 # Create a subset for ENA software -------------------------------------------------------
 child_anthropometry_data <- child_joined %>% 
   select(
