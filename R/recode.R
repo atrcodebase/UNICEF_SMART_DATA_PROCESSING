@@ -63,7 +63,7 @@ main <- main %>%
     
   ) %>% 
   left_join(
-    sample_sheet %>% select(province, CLUSTER, District),
+    sample_sheet %>% select(province=Province, CLUSTER, District),
     by = c("province", "CLUSTER")
   ) %>% 
   relocate(District, .after = district) %>% 
@@ -80,4 +80,10 @@ child <- child %>%
            CHSEX == "f" ~ "Female",
            CHSEX == "m" ~ "Male",
            TRUE ~ CHSEX
+         ),
+         child_status_first = case_when(
+           child_status_first == 1 ~ "The child is present",
+           child_status_first == 2 ~ "The child is present but his/her family does not allow the child to be measured",
+           child_status_first == 3 ~ "The child is asleep but his/her family does not wake her/him up",
+           child_status_first == 4 ~ "The child is absent"
          ))

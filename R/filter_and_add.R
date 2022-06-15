@@ -1,8 +1,3 @@
-#Sample Sheet ----------------------------------------------------------------------------
-sample_sheet <- sample_sheet %>% 
-  filter(CLUSTER != "RC") %>% 
-  mutate(CLUSTER = as.numeric(CLUSTER))
-
 #Household roster sheet ------------------------------------------------------------------
 hh_roster <- hh_roster %>% 
   mutate(uuid = paste0(`_submission__uuid`,`_index`))
