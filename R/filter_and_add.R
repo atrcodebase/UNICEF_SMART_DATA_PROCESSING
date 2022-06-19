@@ -4,8 +4,7 @@ hh_roster <- hh_roster %>%
 
 #Child sheet -----------------------------------------------------------------------------
 child <- child %>%
-  mutate(child_status = "", .after = CHSEX,
-         uuid = case_when(
+  mutate(uuid = case_when(
            !is.na(child_hh_position) ~ paste0(`_submission__uuid`,child_hh_position),
            TRUE ~ `_submission__uuid`
          ))
@@ -17,7 +16,7 @@ preg_lact_wom <- preg_lact_wom %>%
            !is.na(wom_hh_position) ~ paste0(`_submission__uuid`,wom_hh_position),
            TRUE ~ `_submission__uuid`
          )) %>% 
-  filter(wom_valid %in% "f" & (curr_pregnant %in% 1 | curr_breastfeed %in% 1))
+  filter(wom_valid %in% "f" & (curr_pregnant %in% 1 | curr_breastfeed %in% 1)) #test if this in new data and remove the filter 
 
 #Left ------------------------------------------------------------------------------------
 left <- left %>% 

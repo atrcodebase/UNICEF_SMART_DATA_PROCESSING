@@ -58,6 +58,7 @@ demographic_data <- rbind(
 total_province <- main %>% 
   count(province, name="total")
 
+#Non response rate
 non_respondent <- main %>% 
   group_by(province, consent) %>% 
   summarize(freq = n(),
@@ -67,10 +68,17 @@ non_respondent <- main %>%
   mutate(perc = round(freq/total*100,1)) %>% 
   pivot_wider(id_cols = consent, names_from = province, values_from = perc)
 
+#For QA, count of each child MONTHS
+child_months <- child_anthropometry_data %>% 
+  group_by(Child_age_months=MONTHS) %>% 
+  summarize(freq = n()) %>% 
+  arrange(desc(freq))
+
 demographic <- list(
   Demographic = demographic_data,
-  Non_respondent = non_respondent
+  Non_respondent = non_respondent,
+  Child_Months = child_months
 )
 
 # remove extra variables -----------------------------------------------------------------
-rm(total_household, demographic_data, total_province, non_respondent)
+rm(total_household, demographic_data, total_province, non_respondent, child_months)
