@@ -24,7 +24,8 @@ hh_roster_sub <- hh_roster_joined %>%
       born == "n" ~ NA_character_,
       TRUE ~ born)) %>% 
   select(sex, age=age_years, join, born, `_parent_index`) %>% 
-  mutate(left="", died="", cause="", location="")
+  mutate(left="", died="", cause="", location="") %>% 
+  relocate(left, .before = born)
 #Left sheet
 left_sub <- left %>%
   select(left, sex=left_gender, age=left_age_years, `_parent_index`) %>% 
@@ -51,10 +52,9 @@ joined_data <- joined_data %>%
          n = row_number(), .before=sex) %>% 
   pivot_longer(-(start:n), names_to = "question", values_to = "val") %>%
   ungroup()
-
 #Final output
 mortality_data_wide <- joined_data %>% 
-  pivot_wider(names_from = c(n, question), values_from = "val", names_prefix = "P") 
+  pivot_wider(names_from = c(n, question), values_from = "val", names_prefix = "P")
 
 # remove extra variables -----------------------------------------------------------------
 rm(main_sub, hh_roster_sub, left_sub, died_sub, main_sub_roster, main_sub_left, main_sub_died, joined_data)
