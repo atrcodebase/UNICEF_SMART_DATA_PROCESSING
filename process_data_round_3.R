@@ -61,7 +61,7 @@ source("R/recode.R")
 # Check Number of Interviews by date
 table(main$Date)
 table(main$TEAM)
-
+table(main$province)
 # # Filter One Day
 # main <- main %>% filter(Date == '2022-10-24')
 # Filter by Date Range
@@ -108,7 +108,7 @@ main %>%
   ungroup()
 
 ## Renaming for final report only
-child_anthropometry_data <- child_anthropometry_data %>% rename(PROVINCE=province)
+child_anthropometry_data <- child_anthropometry_data %>% rename(PROVINCE=province, `CHILD STATUS` = child_status_first)
 
 # Export results ---------------------------------------------
 # Cumulative
