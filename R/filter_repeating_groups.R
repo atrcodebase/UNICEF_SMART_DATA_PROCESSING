@@ -69,7 +69,12 @@ child_anthropometry_data <- child_joined %>%
     MEASURE,
     CLOTHES,
     child_status_first
-  )
+  ) %>% 
+  mutate(CHSEX = case_when(
+    CHSEX == "Female" ~ "f",
+    CHSEX == "Male" ~ "m",
+    TRUE ~ CHSEX
+  ))
 
 # remove extra objects -------------------------------------------------------------------
 rm(main_sub, max_months)
