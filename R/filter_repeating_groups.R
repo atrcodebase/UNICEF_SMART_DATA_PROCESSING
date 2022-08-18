@@ -68,7 +68,8 @@ child_anthropometry_data <- child_joined %>%
     province,
     MEASURE,
     CLOTHES,
-    child_status_first
+    child_status_first,
+    child_hh_position,
   ) %>% 
   mutate(CHSEX = case_when(
     CHSEX == "Female" ~ "f",

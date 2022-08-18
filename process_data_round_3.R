@@ -65,7 +65,7 @@ table(main$province)
 # # Filter One Day
 # main <- main %>% filter(Date == '2022-10-24')
 # Filter by Date Range
-main <- main %>% filter(Date > '2022-06-11' & Date < "2022-07-13")
+main <- main %>% filter(Date > '2022-06-11' & Date < "2023-07-13")
 
 
 # Filter repeating groups based on the mainsheet -----------------------------------------
@@ -176,3 +176,4 @@ for(prov_list in ls(pattern = "export_list_")){
   #export
   openxlsx::write.xlsx(data, path)
 }
+
