@@ -49,12 +49,24 @@ joined_data <- rbind(main_sub_roster, main_sub_left, main_sub_died)
 joined_data <- joined_data %>% 
   group_by(`_index`) %>% 
   mutate(across(c(sex:location), as.character),
-         n = row_number(), .before=sex) %>% 
-  pivot_longer(-(start:n), names_to = "question", values_to = "val") %>%
+         n = case_when(
+           row_number() > 20 ~ as.numeric(row_number()-20),
+           TRUE ~ as.numeric(row_number())
+         ),
+         extra = case_when(
+           row_number() > 20 ~ "yes",
+           TRUE ~ NA_character_
+         ), .before=sex) %>% 
+  pivot_longer(-(start:extra), names_to = "question", values_to = "val") %>%
   ungroup()
+
 #Final output
 mortality_data_wide <- joined_data %>% 
   pivot_wider(names_from = c(n, question), values_from = "val", names_prefix = "P")
+
+# #Remove the extra column if needed
+# mortality_data_wide <- mortality_data_wide %>% 
+#   select(-extra)
 
 # remove extra variables -----------------------------------------------------------------
 rm(main_sub, hh_roster_sub, left_sub, died_sub, main_sub_roster, main_sub_left, main_sub_died, joined_data)
