@@ -27,6 +27,10 @@ apply_log <- function(UNICEF_correction_log){
       child[child$uuid %in% uuid_i, var_i] <<- new_i
     } else if(var_i %in% colnames(preg_lact_wom)){
       preg_lact_wom[preg_lact_wom$uuid %in% uuid_i, var_i] <<- new_i
+    } else if(var_i %in% colnames(left)){
+      left[left$uuid %in% uuid_i, var_i] <<- new_i
+    } else if(var_i %in% colnames(died)){
+      died[died$uuid %in% uuid_i, var_i] <<- new_i
     }
   }
 }

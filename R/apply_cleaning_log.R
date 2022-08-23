@@ -3,7 +3,8 @@ main_raw <- main
 hh_roster_raw <- hh_roster
 child_raw <- child
 preg_lact_wom_raw <- preg_lact_wom
-
+left_raw <- left
+died_raw <- died
 
 #Merging the logs ------------------------------------------------------------------------
 cols <- c("uuid", "question", "old_value", "new_value")
@@ -20,7 +21,7 @@ UNICEF_correction_log <- rbind(
     select(all_of(cols)))
 
 #Assigning variable types to Correction Log ----------------------------------------------
-datasets <- c("main", "hh_roster", "child", "preg_lact_wom")
+datasets <- c("main", "hh_roster", "child", "preg_lact_wom", "left", "died")
 ques_types <- extract_question_type(datasets)
 
 UNICEF_correction_log <- UNICEF_correction_log %>%
@@ -35,9 +36,11 @@ if(nrow(UNICEF_correction_log) > 0){
   roster_log <- verify_log_changes(hh_roster_raw, hh_roster, "uuid")
   child_log <- verify_log_changes(child_raw, child, "uuid")
   wom_log <- verify_log_changes(preg_lact_wom_raw, preg_lact_wom, "uuid")
+  left_log <- verify_log_changes(left_raw, left, "uuid")
+  died_log <- verify_log_changes(died_raw, died, "uuid")
   
   #Merging the changes
-  manual_log <- rbind(main_log, roster_log, child_log, wom_log)
+  manual_log <- rbind(main_log, roster_log, child_log, wom_log, left_log, died_log)
   
   correction_log_discrep <- anti_join(UNICEF_correction_log[1:4], 
                                       manual_log, c("uuid", "question", "new_value"))

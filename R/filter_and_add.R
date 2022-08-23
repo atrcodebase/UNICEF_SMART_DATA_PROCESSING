@@ -20,8 +20,8 @@ preg_lact_wom <- preg_lact_wom %>%
 
 #Left ------------------------------------------------------------------------------------
 left <- left %>% 
-  mutate(left = "y")
+  mutate(left = "y", uuid = paste0(`_submission__uuid`,`_index`))
 
 #Died ------------------------------------------------------------------------------------
 died <- died %>% 
-  mutate(died = "y")
+  mutate(died = "y", uuid = paste0(`_submission__uuid`,`_index`))
