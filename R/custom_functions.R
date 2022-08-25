@@ -1,42 +1,39 @@
 `%notin%` <- Negate(`%in%`)
 
 # Applying correction log
-apply_log <- function(UNICEF_correction_log){
-  for (rowi in 1:nrow(UNICEF_correction_log)){
-    uuid_i <- UNICEF_correction_log$uuid[rowi]
-    var_i <- UNICEF_correction_log$question[rowi]
-    old_i <- UNICEF_correction_log$old_value[rowi]
-    question_type <- UNICEF_correction_log$question_type[rowi]
-    
-    if (question_type %in% c("numeric", "double", "integer")) {
-      new_i  <- as.numeric(UNICEF_correction_log$new_value[rowi])
-    } else if (question_type %in% "POSIXct") {
-      new_i <- as_datetime(UNICEF_correction_log$new_value[rowi], format = "%Y-%m-%d %H:%M:%S")
-      # "%m/%d/%Y %I:%M:%S %p"
-    } else {
-      new_i <- as.character(UNICEF_correction_log$new_value[rowi])
-    }
-    
-    print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
-    #Find which sheet the variable belongs to
-    if(var_i %in% colnames(main)){
-      main[main$`_uuid` %in% uuid_i, var_i] <<- new_i
-    } else if(var_i %in% colnames(hh_roster)){
-      hh_roster[hh_roster$uuid %in% uuid_i, var_i] <<- new_i
-    } else if(var_i %in% colnames(child)){
-      child[child$uuid %in% uuid_i, var_i] <<- new_i
-    } else if(var_i %in% colnames(preg_lact_wom)){
-      preg_lact_wom[preg_lact_wom$uuid %in% uuid_i, var_i] <<- new_i
-    } else if(var_i %in% colnames(left)){
-      left[left$uuid %in% uuid_i, var_i] <<- new_i
-    } else if(var_i %in% colnames(died)){
-      died[died$uuid %in% uuid_i, var_i] <<- new_i
+apply_log <- function(data, log, key="uuid"){
+  
+  #Filter only questions in the data 
+  log <- log %>% 
+    filter(question %in% names(data))
+  
+  #Continue if there is log for the sheet
+  if(nrow(log) != 0){
+    for (rowi in 1:nrow(log)){
+      uuid_i <- log$uuid[rowi]
+      var_i <- log$question[rowi]
+      old_i <- log$old_value[rowi]
+      question_type <- log$question_type[rowi]
+      
+      if (question_type %in% c("numeric", "double", "integer")) {
+        new_i  <- as.numeric(log$new_value[rowi])
+      } else if (question_type %in% "POSIXct") {
+        new_i <- as_datetime(log$new_value[rowi], format = "%Y-%m-%d %H:%M:%S")
+        # "%m/%d/%Y %I:%M:%S %p"
+      } else {
+        new_i <- as.character(log$new_value[rowi])
+      }
+      
+      print(paste("uuid", uuid_i, "Old value: ", old_i, "changed to", new_i, "for", var_i))
+      #assign new value
+      data[data[[key]] %in% uuid_i, var_i] <- new_i
     }
   }
+  return(data)
 }
 
 #Checks if correction is applied correctly
-verify_log_changes <- function(raw_data, cleaned_data, identifier){
+verify_log_changes <- function(raw_data, cleaned_data, key="uuid"){
   uuid <- vector()
   question <- vector()
   old_value <- vector()
@@ -45,8 +42,8 @@ verify_log_changes <- function(raw_data, cleaned_data, identifier){
   for(col_name in colnames(cleaned_data) ){
     
     for(i in 1:length(cleaned_data[[col_name]])) {
-      id <- cleaned_data[[identifier]][i]
-      oldVal <- raw_data[[col_name]][raw_data[[identifier]] %in% id]
+      id <- cleaned_data[[key]][i]
+      oldVal <- raw_data[[col_name]][raw_data[[key]] %in% id]
       newVal <- cleaned_data[[col_name]][i]
       
       if(col_name %in% c("start", "end")){
