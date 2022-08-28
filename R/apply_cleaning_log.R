@@ -45,12 +45,13 @@ died_log <- verify_log_changes(died_raw, died)
 
 #Merging the changes
 manual_log <- rbind(main_log, roster_log, child_log, wom_log, left_log, died_log)
-
 correction_log_discrep <- anti_join(UNICEF_correction_log[1:4], 
                                     manual_log, c("uuid", "question", "new_value"))
+correction_log_discrep <- correction_log_discrep %>% 
+  filter(question %notin% c('start', 'end'))
 
 # remove extra objects -------------------------------------------------------------------
-rm(url, main_log, roster_log, child_log, wom_log, manual_log, ques_types,
+rm(url, main_log, roster_log, child_log, wom_log, ques_types,
    datasets, main_raw, hh_roster_raw, child_raw, preg_lact_wom_raw, cols)
 
 

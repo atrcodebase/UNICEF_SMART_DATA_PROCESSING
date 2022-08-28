@@ -15,8 +15,9 @@ preg_lact_wom <- preg_lact_wom %>%
          uuid = case_when(
            !is.na(wom_hh_position) ~ paste0(`_submission__uuid`,wom_hh_position),
            TRUE ~ `_submission__uuid`
-         )) %>% 
-  filter(wom_valid %in% "f" & (curr_pregnant %in% 1 | curr_breastfeed %in% 1)) #test if this in new data and remove the filter 
+         ), 
+         wom_age_years = as.numeric(wom_age_years)) %>% 
+  filter(wom_valid %in% "f" & wom_age_years >= 15 & wom_age_years <= 49)
 
 #Left ------------------------------------------------------------------------------------
 left <- left %>% 
