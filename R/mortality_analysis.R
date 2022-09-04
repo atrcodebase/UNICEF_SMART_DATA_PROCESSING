@@ -39,9 +39,9 @@ died_sub <- died %>%
 #Merging the sheets ----------------------------------------------------------------------
 main_sub_roster <- left_join(main_sub, 
                              hh_roster_sub, by = c("_index" = "_parent_index"))
-main_sub_left <- left_join(main_sub %>% filter(total_left > 0), 
+main_sub_left <- left_join(main_sub, 
                            left_sub, by = c("_index" = "_parent_index"))
-main_sub_died <- left_join(main_sub %>% filter(total_died > 0), 
+main_sub_died <- left_join(main_sub, 
                            died_sub, by = c("_index" = "_parent_index"))
 joined_data <- rbind(main_sub_roster, main_sub_left, main_sub_died) 
 

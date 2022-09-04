@@ -10,6 +10,8 @@ main <- main %>% type_convert()
 hh_roster <- hh_roster %>%  select(-uuid) %>% type_convert()
 child <- child %>% select(-uuid) %>% type_convert()
 preg_lact_wom <- preg_lact_wom %>% select(-uuid) %>% type_convert()
+left <- left %>% select(-uuid) %>% type_convert()
+died <- died %>% select(-uuid) %>% type_convert()
 
 #Main sheet ------------------------------------------------------------------------------
 main <- main %>% 
