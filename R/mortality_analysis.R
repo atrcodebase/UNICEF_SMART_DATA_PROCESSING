@@ -6,8 +6,6 @@ main_sub <- main %>%
     province,
     district,
     numfamily,
-    total_left,
-    total_died,
     `_index`,
     `_uuid`,
     Date,
@@ -37,13 +35,17 @@ died_sub <- died %>%
   mutate(left="", join="", born="")
 
 #Merging the sheets ----------------------------------------------------------------------
-main_sub_roster <- left_join(main_sub, 
-                             hh_roster_sub, by = c("_index" = "_parent_index"))
-main_sub_left <- left_join(main_sub, 
-                           left_sub, by = c("_index" = "_parent_index"))
-main_sub_died <- left_join(main_sub, 
-                           died_sub, by = c("_index" = "_parent_index"))
-joined_data <- rbind(main_sub_roster, main_sub_left, main_sub_died) 
+main_sub_roster <- left_join(hh_roster_sub,
+                             main_sub, by = c("_parent_index" = "_index"))
+main_sub_left <- left_join(left_sub, 
+                           main_sub, by = c("_parent_index" = "_index"))
+main_sub_died <- left_join(died_sub, 
+                           main_sub, by = c("_parent_index" = "_index"))
+joined_data <- rbind(main_sub_roster, main_sub_left, main_sub_died)
+
+joined_data <- joined_data %>% 
+  rename(`_index`=`_parent_index`) %>% 
+  select(names(main_sub), everything())
 
 #Reshaping -------------------------------------------------------------------------------
 joined_data <- joined_data %>% 
