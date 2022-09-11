@@ -26,7 +26,7 @@ main <- main %>%
       province	== 3	~ "Baghlan",
       province	== 4	~ "Balkh",
       province	== 5	~ "Bamyan",
-      province	== 6	~ "Daikundi",
+      province	== 6	~ "Daykundi",
       province	== 7	~ "Farah",
       province	== 8	~ "Faryab",
       province	== 9	~ "Ghazni",
@@ -52,7 +52,7 @@ main <- main %>%
       province	== 29	~ "Samangan",
       province	== 30	~ "Sar-e-Pul",
       province	== 31	~ "Takhar",
-      province	== 32	~ "Urozgan",
+      province	== 32	~ "Uruzgan",
       province	== 33	~ "Wardak",
       province	== 34	~ "Zabul",
       TRUE ~ province
