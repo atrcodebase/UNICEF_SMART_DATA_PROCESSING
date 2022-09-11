@@ -6,6 +6,7 @@ main_sub <- main %>%
     Date,
     province,
     district,
+    District,
     CLUSTER,
     TEAM,
     HH,
