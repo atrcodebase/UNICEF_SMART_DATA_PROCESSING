@@ -65,9 +65,9 @@ child_anthropometry_data <- child_joined %>%
     HEIGHT,
     EDEMA,
     MUAC,
-    province,
     MEASURE,
     CLOTHES,
+    province,
     child_status_first,
     child_hh_position,
   ) %>% 
