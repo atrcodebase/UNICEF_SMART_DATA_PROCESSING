@@ -14,6 +14,8 @@ main_sub <- main %>%
     HH)
 #rooster sheet
 hh_roster_sub <- hh_roster_joined %>%
+  left_join(child %>% select(child_status_first, hh_position=child_hh_position, `_submission__uuid`), 
+            by=c("hh_position", "_submission__uuid")) %>% #joining child_status_first for Mortality v2
   mutate(join = case_when(
     join == "n" ~ NA_character_,
     join == "y" & born == "y" & age_years < 1 ~ NA_character_,
@@ -21,7 +23,7 @@ hh_roster_sub <- hh_roster_joined %>%
     born = case_when(
       born == "n" ~ NA_character_,
       TRUE ~ born)) %>% 
-  select(sex, age=age_years, join, born, `_parent_index`) %>% 
+  select(sex, age=age_years, join, born, child_status_first, `_parent_index`) %>% 
   mutate(left="", died="", cause="", location="") %>% 
   relocate(left, .before = born)
 #Left sheet
@@ -41,7 +43,7 @@ main_sub_left <- left_join(left_sub,
                            main_sub, by = c("_parent_index" = "_index"))
 main_sub_died <- left_join(died_sub, 
                            main_sub, by = c("_parent_index" = "_index"))
-joined_data <- rbind(main_sub_roster, main_sub_left, main_sub_died)
+joined_data <- rbind(main_sub_roster %>% select(-child_status_first), main_sub_left, main_sub_died)
 
 joined_data <- joined_data %>% 
   rename(`_index`=`_parent_index`) %>% 
@@ -66,9 +68,37 @@ joined_data <- joined_data %>%
 mortality_data_wide <- joined_data %>% 
   pivot_wider(names_from = c(n, question), values_from = "val", names_prefix = "P")
 
-# #Remove the extra column if needed
-# mortality_data_wide <- mortality_data_wide %>% 
-#   select(-extra)
+
+# Subset 2 -------------------------------------------------------------------------------
+main_sub_roster2 <- main_sub_roster %>% 
+  filter((age < 5 & child_status_first %in% "The child is present.") | (age >= 5)) %>% 
+  select(-child_status_first)
+
+joined_data2 <- rbind(main_sub_roster2, main_sub_left, main_sub_died)
+
+joined_data2 <- joined_data2 %>% 
+  rename(`_index`=`_parent_index`) %>% 
+  select(names(main_sub), everything())
+
+#Reshaping -------------------------------------------------------------------------------
+joined_data2 <- joined_data2 %>% 
+  group_by(`_index`) %>% 
+  mutate(across(c(sex:location), as.character),
+         n = case_when(
+           row_number() > 20 ~ as.numeric(row_number()-20),
+           TRUE ~ as.numeric(row_number())
+         ),
+         extra = case_when(
+           row_number() > 20 ~ "yes",
+           TRUE ~ NA_character_
+         ), .before=sex) %>% 
+  pivot_longer(-(start:extra), names_to = "question", values_to = "val") %>%
+  ungroup()
+
+#Final output
+mortality_data_wide2 <- joined_data2 %>% 
+  pivot_wider(names_from = c(n, question), values_from = "val", names_prefix = "P")
 
 # remove extra variables -----------------------------------------------------------------
-rm(main_sub, hh_roster_sub, left_sub, died_sub, main_sub_roster, main_sub_left, main_sub_died, joined_data)
+rm(main_sub, hh_roster_sub, left_sub, died_sub, main_sub_roster, main_sub_left, 
+   main_sub_died, joined_data, main_sub_roster2, joined_data2)

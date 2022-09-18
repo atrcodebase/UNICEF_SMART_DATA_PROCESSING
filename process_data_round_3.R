@@ -42,6 +42,11 @@ if(exists("correction_log_discrep")){
   correction_log_discrep
 }
 
+# attach value labels ------------------------------------------
+smart_tool <- "input/tool/ACO_SMART_Survey_2022_Round 3.xlsx"
+# file.edit("R/attach_labels.R")
+source("R/attach_labels.R")
+
 # Remove rejected keys -------------------------------------------------------------------
 main <- main %>%
   filter(`_uuid` %notin% unique(rejection_log$UUID))
@@ -121,6 +126,7 @@ export_list <- list(
   died = died_joined,
   child_anthropometry_data = child_anthropometry_data,
   Mortality = mortality_data_wide,
+  Mortality_v2 = mortality_data_wide2,
   gender_disagg = gender_disagg 
 )
 
@@ -137,7 +143,8 @@ cleaned_data <- list(
   preg_lact_wom = preg_lact_wom,
   left = left,
   died = died,
-  Mortality = mortality_data_wide
+  Mortality = mortality_data_wide,
+  Mortality_v2 = mortality_data_wide2
 )
 
 # create the output paths

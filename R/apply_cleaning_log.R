@@ -36,6 +36,7 @@ left <- apply_log(left ,UNICEF_correction_log)
 died <- apply_log(died ,UNICEF_correction_log)
 
 #Verify log ----------------------------------------------------------------------------
+message("Verifying Correction log, please wait!")
 main_log <- verify_log_changes(main_raw, main, key="_uuid")
 roster_log <- verify_log_changes(hh_roster_raw, hh_roster)
 child_log <- verify_log_changes(child_raw, child)
