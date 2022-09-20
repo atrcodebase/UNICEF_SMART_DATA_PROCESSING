@@ -17,7 +17,7 @@ died <- died %>% select(-uuid) %>% type_convert()
 main <- main %>% 
   mutate(
     Date = base::as.Date(start),
-    Duration = difftime(end, start, units = c("mins")),
+    Duration = difftime(end, start, units = c("mins"))
   ) %>% 
   left_join(
     sample_sheet %>% select(province=Province, CLUSTER, District),

@@ -35,16 +35,3 @@ died <- atRfunctions::labeler(data = died,
                               choice_lable = "label::English",
                               multi_response_sep = " "
 )
-
-# Re-updating labels for ENA -------------------------------------------------------------
-child <- child %>% 
-  mutate(MEASURE = case_when(
-    MEASURE %in% "Standing height" ~ "h",
-    MEASURE %in% "Length (lying horizontal on board)" ~ "l",
-    TRUE ~ MEASURE
-  ),
-  CLOTHES = case_when(
-    CLOTHES %in% "Yes" ~ "y",
-    CLOTHES %in% "No" ~ "n",
-    TRUE ~ CLOTHES
-  ))
