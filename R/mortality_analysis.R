@@ -61,6 +61,11 @@ joined_data <- joined_data %>%
            row_number() > 20 ~ "yes",
            TRUE ~ NA_character_
          ), .before=sex) %>% 
+  mutate(sex = case_when(
+    sex == "Male" ~ "m",
+    sex == "Female" ~ "f",
+    TRUE ~ sex
+  )) %>% 
   pivot_longer(-(start:extra), names_to = "question", values_to = "val") %>%
   ungroup()
 
@@ -92,6 +97,11 @@ joined_data2 <- joined_data2 %>%
            row_number() > 20 ~ "yes",
            TRUE ~ NA_character_
          ), .before=sex) %>% 
+  mutate(sex = case_when(
+    sex == "Male" ~ "m",
+    sex == "Female" ~ "f",
+    TRUE ~ sex
+  )) %>% 
   pivot_longer(-(start:extra), names_to = "question", values_to = "val") %>%
   ungroup()
 
